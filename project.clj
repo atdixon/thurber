@@ -29,7 +29,8 @@
           [lein-codox "0.10.7"]]}
    :demo {:source-paths ["src" "demo"]
           :dependencies
-          [[org.apache.beam/beam-runners-direct-java "2.16.0"]
+          [[clj-time "0.15.2"]
+           [org.apache.beam/beam-runners-direct-java "2.16.0"]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]

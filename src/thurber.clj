@@ -4,12 +4,52 @@
             [clojure.data.json :as json]
             [clojure.string :as str]
             [clojure.walk :as walk])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions)
-           (org.apache.beam.sdk.values PCollection)
+           (org.apache.beam.sdk.values PCollection KV)
            (org.apache.beam.sdk Pipeline)
-           (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)))
+           (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
+           (clojure.lang MapEntry)
+           (org.apache.beam.sdk.transforms.windowing BoundedWindow)))
+
+;; --
+
+(def ^:dynamic ^PipelineOptions *pipeline-options* nil)
+(def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
+(def ^:dynamic ^BoundedWindow *element-window* nil)
+
+;; --
+
+(defn- output-one* [val]
+  (if
+   ;; These are the segment types that we allow to flow.
+   (or (map? val)
+       (instance? MapEntry val)
+       (instance? KV val)
+       (number? val)
+       (string? val))
+    (.output *process-context* val)
+    (throw (RuntimeException. (format "invalid output: %s/%s" val (type val))))))
+
+;; todo consider (try catch) w/ nice reporting around call here
+;; todo tagged multi-output [:one <seq> ...]
+
+(defn apply** [fn
+               ^PipelineOptions options
+               ^DoFn$ProcessContext context
+               ^BoundedWindow window
+               & args]
+  (binding [*pipeline-options* options
+            *process-context* context
+            *element-window* window]
+    (when-let [rv (apply fn (concat args [(.element context)]))]
+      (if (seq? rv)
+        (doseq [v rv]
+          (output-one* v))
+        (output-one* rv)))))
+
+;; --
 
 (defn- coerce-args [args]
   (into-array
@@ -32,7 +72,7 @@
         (coerce-args args))
        (.as as))))
 
-(defn get-config* [obj]
+(defn get-custom-config* [obj]
   (if (instance? Pipeline obj)
     (recur (.getOptions obj))
     (->> (.getCustomConfig ^TOptions (.as obj TOptions))
