@@ -1,3 +1,46 @@
 * step names
 * metrics
 *
+
+
+* link: https://beam.apache.org/get-started/wordcount-example/
+*     : https://beam.apache.org/get-started/mobile-gaming-example/
+
+
+basic
+===
+* make name optional for comp*
+* count-per-key is not a generic xform
+*
+
+misc
+===
+* convert ->extract-sum-and-score-xf example so that KV never
+        appears at this api level; need "fujion" then?
+
+test
+===
+* unit tests all demos, so demos don't regress
+
+code doc
+===
+* ->kv is powerful, explain it. validate fn args are vars?
+
+nice to haves
+===
+* {^:th/coder coder/nippy-kv} on dofn fn
+*
+
+benchmark
+===
+* nominal checking w/ notes
+
+clip
+===
+* create gs://thurber-demo
+* lein with-profile +demo,+dataflow uberjar
+* lein with-profile +demo,+dataflow run -m game.user-score/demo! \
+    --appName="thurber-demo/user-score" \
+    --runner=DataflowRunner --region=us-central1 --project=atdixon \
+    --gcpTempLocation=gs://thurber-demo/gcp-temp \
+    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar

@@ -23,12 +23,12 @@
 
 (defn- output-one* [val]
   (if
-   ;; These are the segment types that we allow to flow.
-   (or (map? val)
-       (instance? MapEntry val)
-       (instance? KV val)
-       (number? val)
-       (string? val))
+    ;; These are the segment types that we allow to flow.
+    (or (map? val)
+      (instance? MapEntry val)
+      (instance? KV val)
+      (number? val)
+      (string? val))
     (.output *process-context* val)
     (throw (RuntimeException. (format "invalid output: %s/%s" val (type val))))))
 
@@ -51,32 +51,38 @@
 
 ;; --
 
-(defn- coerce-args [args]
-  (into-array
-   String (if (map? args)
-            (map (fn [[k v]]
-                   (format "--%s=%s"
-                           (-> k csk/->camelCase name)
-                           (if (or (map? v) (coll? v))
-                             (json/write-str v)
-                             (-> v str (str/escape {\" "\"\""}))))) args)
-            args)))
+(defn ->beam-args [m]
+  (map (fn [[k v]]
+         (format "--%s=%s"
+           (-> k csk/->camelCase name)
+           (cond
+             (map? v) (json/write-str v)
+             (coll? v) (str/join "," v)
+             :else (-> v str (str/escape {\" "\\\""}))))) m))
 
-(defn ^PipelineOptions create-opts*
+(defn ^PipelineOptions create-options
   ([]
-   (create-opts* [] TOptions))
-  ([args]
-   (create-opts* args TOptions))
-  ([args as]
+   (create-options [] TOptions))
+  ([opts]
+   (create-options opts TOptions))
+  ([opts as]
    (-> (PipelineOptionsFactory/fromArgs
-        (coerce-args args))
-       (.as as))))
+         (cond
+           (map? opts) (into-array String (->beam-args opts))
+           (coll? opts) (into-array String opts)
+           :else opts))
+     (.as as))))
 
-(defn get-custom-config* [obj]
+(defn create-pipeline [opts]
+  (-> (if (instance? PipelineOptions opts)
+        opts (create-options opts))
+    (Pipeline/create)))
+
+(defn get-custom-config [obj]
   (if (instance? Pipeline obj)
     (recur (.getOptions obj))
     (->> (.getCustomConfig ^TOptions (.as obj TOptions))
-         (into {}) walk/keywordize-keys)))
+      (into {}) walk/keywordize-keys)))
 
 ;; --
 
@@ -89,7 +95,7 @@
                 ;       to learn a thing.
                 #_#_(instance? PTransform @xf) @xf
                 :else (throw (ex-info "bad xf" {:unexpected-xf xf})))
-    (map? xf) (recur (:thurber/xf xf))
+    (map? xf) (recur (:th/xform xf))
     :else (if (instance? PTransform xf)
             xf (throw (ex-info "bad xf" {:unexpected-xf xf})))))
 
@@ -100,8 +106,8 @@
 (defn- ^TCoder ->explicit-coder* [prev xf]
   (cond
     (var? xf) coder/nippy
-    (map? xf) (let [c (:thurber/coder xf)]
-                (if (= c :thurber/inherit)
+    (map? xf) (let [c (:th/coder xf)]
+                (if (= c :th/inherit)
                   (.getCoder prev) c))
     :else nil))
 
@@ -109,10 +115,10 @@
   "Apply coerce*-able transforms to an input (Pipeline, PCollection, PBegin ...)"
   [input & xfs]
   (reduce
-   (fn [acc xf]
-     (let [acc' ^PCollection (.apply acc (coerce* xf))
-           explicit-coder (->explicit-coder* acc xf)]
-       (when explicit-coder (.setCoder acc' explicit-coder)) acc')) input xfs))
+    (fn [acc xf]
+      (let [acc' ^PCollection (.apply acc (coerce* xf))
+            explicit-coder (->explicit-coder* acc xf)]
+        (when explicit-coder (.setCoder acc' explicit-coder)) acc')) input xfs))
 
 (defn ^PTransform comp* [comp-name & xfs]
   (proxy [PTransform] [comp-name]
@@ -127,7 +133,5 @@
       (Create/of ^Map coll)
       (Create/of ^Iterable (seq coll)))
     (.withCoder coder/nippy)))
-
-;; --
 
 ;; --

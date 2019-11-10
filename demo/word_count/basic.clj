@@ -1,6 +1,6 @@
-(ns word-count
+(ns word-count.basic
   (:require [thurber :as th]
-            [thurber-xfs :as xfs]
+            [thurber.xform :as xf]
             [clojure.string :as str]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
@@ -29,11 +29,11 @@
   (th/comp*
    "count-words"
    #'extract-words
-   xfs/count-per-key))
+   xf/count-per-key))
 
 (defn- create-pipeline [opts]
-  (let [pipeline (Pipeline/create (th/create-opts* opts))
-        conf (th/get-custom-config* pipeline)]
+  (let [pipeline (th/create-pipeline opts)
+        conf (th/get-custom-config pipeline)]
     (doto pipeline
       (th/apply!
        (-> (TextIO/read)
@@ -42,7 +42,7 @@
        #'format-as-text
        #'sink*))))
 
-(defn run* []
+(defn demo! []
   (-> (create-pipeline
        ;; Thurber fully supports Beam's PipelineOptions and static Java interfaces.
        ;;

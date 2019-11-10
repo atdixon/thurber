@@ -1,9 +1,9 @@
-(ns word-count-windowed
+(ns word-count.windowed
   (:require [thurber :as th]
             [clj-time.core :as t]
             [clj-time.coerce :as c]
             [clojure.tools.logging :as log]
-            [word-count])
+            [word-count.basic])
   (:import (org.apache.beam.sdk.io TextIO)
            (org.apache.beam.sdk Pipeline)
            (org.joda.time Duration Instant)
@@ -29,8 +29,8 @@
   (log/infof "%s in %s" elem th/*element-window*))
 
 (defn- create-pipeline [opts]
-  (let [pipeline (Pipeline/create (th/create-opts* opts))
-        conf (th/get-custom-config* pipeline)]
+  (let [pipeline (th/create-pipeline opts)
+        conf (th/get-custom-config pipeline)]
     (doto pipeline
       (th/apply!
        (-> (TextIO/read)
@@ -42,11 +42,11 @@
        (Window/into
         (FixedWindows/of
          (Duration/standardMinutes (:window-size conf))))
-       word-count/count-words-xf
-       #'word-count/format-as-text
+       word-count.basic/count-words-xf
+       #'word-count.basic/format-as-text
        #'sink*))))
 
-(defn run* []
+(defn demo! []
   (let [now (t/now)]
     (-> (create-pipeline
          {:custom-config {:input-file "lorem.txt"

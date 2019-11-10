@@ -29,15 +29,8 @@
           [lein-codox "0.10.7"]]}
    :demo {:source-paths ["src" "demo"]
           :dependencies
-          [[clj-time "0.15.2"]
-           [org.apache.beam/beam-runners-direct-java "2.16.0"]
+          [[org.apache.beam/beam-runners-direct-java "2.16.0"]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]
-               [org.apache.beam/beam-runners-google-cloud-dataflow-java "2.16.0"]]}}
-
-  :aliases
-  {"deploy-lib" ["do" "deploy" "clojars," "install"]}
-
-  :repositories {"sonatype-oss-public"
-                 "https://oss.sonatype.org/content/groups/public/"})
+               [org.apache.beam/beam-runners-google-cloud-dataflow-java "2.16.0"]]}})
