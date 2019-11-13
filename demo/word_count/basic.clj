@@ -1,10 +1,9 @@
 (ns word-count.basic
   (:require [thurber :as th]
-            [thurber.xform :as xf]
             [clojure.string :as str]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk Pipeline)))
+           (org.apache.beam.sdk.transforms Count)))
 
 ;; Simple Clojure functions can serve as Beam DoFns.
 ;;
@@ -27,9 +26,14 @@
 ;; A reusable transform.
 (def count-words-xf
   (th/comp*
-   "count-words"
-   #'extract-words
-   xf/count-per-key))
+    "count-words"
+    #'extract-words
+    {:th/xform #'th/->kv
+     :th/coder th/nippy-kv}
+    (Count/perKey)
+    ;; Not necessary to convert to KV to clj (ie MapEntry)
+    ;; but this allows downstream to use Clojure destructuring.
+    #'th/kv->clj))
 
 (defn- create-pipeline [opts]
   (let [pipeline (th/create-pipeline opts)

@@ -29,11 +29,17 @@ code doc
 nice to haves
 ===
 * {^:th/coder coder/nippy-kv} on dofn fn
-*
+* partial* => {:th/params [] ...}
 
 benchmark
 ===
 * nominal checking w/ notes
+
+* profile using dataflow (and compare to java versions)
+
+perf
+====
+* try avro/abracad coder vs nippy in cases see how it goes
 
 clip
 ===

@@ -1,11 +1,8 @@
 (ns game.user-score
   (:require [thurber :as th]
-            [thurber.xform :as xf]
-            [thurber.coder :as coder]
             [clojure.string :as str]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.values KV)
            (org.apache.beam.sdk.transforms Sum)))
 
@@ -21,16 +18,16 @@
 (defn- ->field-and-score-kv [field elem]
   (KV/of (field elem) (:score elem)))
 
-(defn- ->extract-sum-and-score-xf [field]
+(defn ->extract-sum-and-score-xf [field]
   (th/comp* "extract-sum-and-score"
     {:th/xform (th/partial* #'->field-and-score-kv field)
-     :th/coder coder/nippy-kv}
+     :th/coder th/nippy-kv}
     (Sum/integersPerKey)
     ;; It is not necessary to convert Beam's KV type to Clojure; however
     ;; doing so allows us to tap into Clojure goodness such as destructuring.
     ;; Beam KVs become MapEntrys here; these can be destructured like
     ;; vectors. See format-row.
-    #'xf/kv->clj))
+    #'th/kv->clj))
 
 (defn- format-row [[k v]]
   (format "user: %s, total_score: %d" k v))

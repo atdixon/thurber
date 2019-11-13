@@ -1,23 +1,56 @@
 (ns thurber
   (:require [camel-snake-kebab.core :as csk]
-            [thurber.coder :as coder]
             [clojure.data.json :as json]
             [clojure.string :as str]
-            [clojure.walk :as walk])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext)
+            [clojure.walk :as walk]
+            [taoensso.nippy :as nippy])
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction)
            (org.apache.beam.sdk.values PCollection KV)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
-           (org.apache.beam.sdk.transforms.windowing BoundedWindow)))
+           (org.apache.beam.sdk.transforms.windowing BoundedWindow)
+           (org.apache.beam.sdk.coders KvCoder CustomCoder)
+           (java.io DataInputStream InputStream DataOutputStream OutputStream)))
+
+;; --
+
+(def ^:private nippy-impl
+  (proxy [CustomCoder] []
+    (encode [val ^OutputStream out]
+      (nippy/freeze-to-out! (DataOutputStream. out) val))
+    (decode [^InputStream in]
+      (nippy/thaw-from-in! (DataInputStream. in)))))
+
+(def nippy
+  (TCoder. #'nippy-impl))
+
+(def nippy-kv (KvCoder/of nippy nippy))
+
+;; nippy codes MapEntry as vectors by default; but we want them to stay
+;; MapEntry after thaw:
+
+(nippy/extend-freeze
+  MapEntry :thurber/map-entry
+  [val data-output]
+  (let [[k v] val]
+    (nippy/freeze-to-out! data-output [k v])))
+
+(nippy/extend-thaw
+  :thurber/map-entry
+  [data-input]
+  (let [[k v] (nippy/thaw-from-in! data-input)]
+    (MapEntry/create k v)))
 
 ;; --
 
 (def ^:dynamic ^PipelineOptions *pipeline-options* nil)
 (def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
 (def ^:dynamic ^BoundedWindow *element-window* nil)
+
+(def ^:dynamic *proxy-config* nil)
 
 ;; --
 
@@ -99,13 +132,9 @@
     :else (if (instance? PTransform xf)
             xf (throw (ex-info "bad xf" {:unexpected-xf xf})))))
 
-(defn ^PTransform partial*
-  [xfn & args]
-  (ParDo/of (TDoFn. xfn (object-array args))))
-
 (defn- ^TCoder ->explicit-coder* [prev xf]
   (cond
-    (var? xf) coder/nippy
+    (var? xf) nippy
     (map? xf) (let [c (:th/coder xf)]
                 (if (= c :th/inherit)
                   (.getCoder prev) c))
@@ -132,6 +161,35 @@
     (if (map? coll)
       (Create/of ^Map coll)
       (Create/of ^Iterable (seq coll)))
-    (.withCoder coder/nippy)))
+    (.withCoder nippy)))
 
 ;; --
+
+(defn ^PTransform partial*
+  [xfn & args]
+  (ParDo/of (TDoFn. xfn (object-array args))))
+
+(defn- filter-impl [pred-fn & args]
+  (when (apply pred-fn args)
+    (last args)))
+
+(defn ^PTransform filter* [pred-fn & args]
+  (apply partial* #'filter-impl pred-fn args))
+
+(defn ^SerializableFunction simple* [fn & args]
+  (TSerializableFunction. fn args))
+
+;; --
+
+(defn ->kv
+  ([seg]
+   (KV/of seg seg))
+  ([seg key-fn]
+   (KV/of (key-fn seg) seg))
+  ([seg key-fn val-fn]
+   (KV/of (key-fn seg) (val-fn seg))))
+
+;; --
+
+(defn kv->clj [^KV kv]
+  (MapEntry/create (.getKey kv) (.getValue kv)))

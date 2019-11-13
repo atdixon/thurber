@@ -5,7 +5,6 @@
             [clojure.tools.logging :as log]
             [word-count.basic])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk Pipeline)
            (org.joda.time Duration Instant)
            (org.apache.beam.sdk.transforms.windowing Window FixedWindows)))
 
