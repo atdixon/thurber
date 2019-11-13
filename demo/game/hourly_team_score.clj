@@ -85,5 +85,5 @@
               :stop-min "2100-01-01-00-00"
               :window-duration 60
               :input "gs://apache-beam-samples/game/gaming_data*.csv"
-              :output "gs://thurber-demo/user-score-"}})))
+              :output "gs://thurber-demo/hourly-team-score-"}})))
     (.run)))

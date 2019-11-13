@@ -45,7 +45,7 @@ clip
 ===
 * create gs://thurber-demo
 * lein with-profile +demo,+dataflow uberjar
-* lein with-profile +demo,+dataflow run -m game.user-score/demo! \
+* lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
     --appName="thurber-demo/user-score" \
     --runner=DataflowRunner --region=us-central1 --project=atdixon \
     --gcpTempLocation=gs://thurber-demo/gcp-temp \
