@@ -8,8 +8,7 @@
            (org.joda.time Instant Duration)
            (org.apache.beam.sdk.transforms WithTimestamps)
            (org.apache.beam.sdk.transforms.windowing Window FixedWindows IntervalWindow BoundedWindow PaneInfo)
-           (org.apache.beam.sdk.io.fs ResourceId ResolveOptions$StandardResolveOptions)
-           (thurber.java.exp TFilenamePolicy)))
+           (org.apache.beam.sdk.io.fs ResourceId ResolveOptions$StandardResolveOptions)))
 
 (def min-parser
   (f/formatter "yyyy-MM-dd-HH-mm" (t/time-zone-for-id "America/Los_Angeles")))
@@ -38,7 +37,7 @@
   (proxy [FileBasedSink$FilenamePolicy] []
     (windowedFilename [shard-number num-shards ^BoundedWindow window
                        ^PaneInfo pane-info ^FileBasedSink$OutputFileHints output-file-hints]
-      (let [prefix ^ResourceId th/*proxy-config*
+      (let [[prefix] ^ResourceId th/*proxy-args*
             filename (format "%s-%s-of-%s%s" (filename-prefix-for-window prefix window)
                        shard-number num-shards (.getSuggestedFilenameSuffix output-file-hints))]
         (-> prefix (.getCurrentDirectory)
@@ -49,7 +48,8 @@
     (th/comp* "write-to-text"
       row-formatter
       (-> (TextIO/write)
-        (.to (TFilenamePolicy. resource #'per-window-files))
+        (.to ^FileBasedSink$FilenamePolicy
+          (th/proxy* #'per-window-files resource))
         (.withTempDirectory (.getCurrentDirectory resource))
         (.withWindowedWrites)
         (.withNumShards 3)))))

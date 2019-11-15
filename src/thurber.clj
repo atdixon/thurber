@@ -6,7 +6,7 @@
             [taoensso.nippy :as nippy])
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy)
            (org.apache.beam.sdk.values PCollection KV)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
@@ -50,7 +50,7 @@
 (def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
 (def ^:dynamic ^BoundedWindow *element-window* nil)
 
-(def ^:dynamic *proxy-config* nil)
+(def ^:dynamic *proxy-args* nil)
 
 ;; --
 
@@ -81,6 +81,11 @@
         (doseq [v rv]
           (output-one* v))
         (output-one* rv)))))
+
+;; --
+
+(defn proxy* [proxy-var & args]
+  (TProxy/create proxy-var (into-array Object args)))
 
 ;; --
 
