@@ -1,5 +1,6 @@
 * step names
 * metrics
+* job name
 *
 
 
@@ -61,11 +62,21 @@ clip
 ===
 * create gs://thurber-demo
 * lein with-profile +demo,+experimental,+dataflow uberjar
-* lein with-profile +demo,+experimental,+dataflow run -m game.hourly-team-score/demo! \
-    --appName="thurber-demo/user-score" \
+* lein with-profile +demo,+experimental,+dataflow run -m game.leader-board/demo! \
+    --appName="thurber-demo/leader-board" \
     --runner=DataflowRunner --region=us-central1 --project=atdixon \
     --gcpTempLocation=gs://thurber-demo/gcp-temp \
     --filesToStage=target/thurber-0.1.0-alpha-standalone.jar
+
+NO WORK:
+lein with-profile +demo,+experimental,+dataflow run -m org.apache.beam.examples.complete.game.injector.Injector \
+    atdixon projects/atdixon/topics/thurber-demo-game none
+
+LEADERBOARD example:
+    - create topic
+    - create dataset
+    - run/deploy pipeline
+    - run Injector w/ simple name of topic
 
 ===
 * separate demo project using pegged version of thurber

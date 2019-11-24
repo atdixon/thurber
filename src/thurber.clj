@@ -54,17 +54,6 @@
 
 ;; --
 
-(defn- output-one* [val]
-  (if
-    ;; These are the segment types that we allow to flow.
-    (or (map? val)
-      (instance? MapEntry val)
-      (instance? KV val)
-      (number? val)
-      (string? val))
-    (.output *process-context* val)
-    (throw (RuntimeException. (format "invalid output: %s/%s" val (type val))))))
-
 ;; todo consider (try catch) w/ nice reporting around call here
 ;; todo tagged multi-output [:one <seq> ...]
 
@@ -79,8 +68,8 @@
     (when-let [rv (apply fn (concat args [(.element context)]))]
       (if (seq? rv)
         (doseq [v rv]
-          (output-one* v))
-        (output-one* rv)))))
+          (.output *process-context* v))
+        (.output *process-context* rv)))))
 
 ;; --
 
@@ -111,7 +100,7 @@
            :else opts))
      (.as as))))
 
-(defn create-pipeline [opts]
+(defn ^Pipeline create-pipeline [opts]
   (-> (if (instance? PipelineOptions opts)
         opts (create-options opts))
     (Pipeline/create)))
@@ -145,12 +134,20 @@
                   (.getCoder prev) c))
     :else nil))
 
+(defn- ->name* [xf]
+  (cond
+    (var? xf) (-> xf meta :name name)
+    (map? xf) (or (:th/name xf) (recur (:th/xform xf)))
+    :else nil))
+
 (defn ^PCollection apply!
   "Apply coerce*-able transforms to an input (Pipeline, PCollection, PBegin ...)"
   [input & xfs]
   (reduce
     (fn [acc xf]
-      (let [acc' ^PCollection (.apply acc (coerce* xf))
+      (let [acc' ^PCollection (if-let [xf-name (->name* xf)]
+                                (.apply acc xf-name (coerce* xf))
+                                (.apply acc (coerce* xf)))
             explicit-coder (->explicit-coder* acc xf)]
         (when explicit-coder (.setCoder acc' explicit-coder)) acc')) input xfs))
 

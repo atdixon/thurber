@@ -19,8 +19,7 @@
    [org.clojure/tools.logging "0.5.0"]
    [org.slf4j/slf4j-api "1.7.29"]
    [org.apache.kafka/kafka-clients "1.0.0"]
-   [org.apache.beam/beam-sdks-java-core "2.16.0"]
-   [org.apache.beam/beam-sdks-java-io-kafka "2.16.0"]]
+   [org.apache.beam/beam-sdks-java-core "2.16.0"]]
 
   :profiles
   {:dev {:plugins
@@ -30,6 +29,7 @@
    :demo {:source-paths ["src" "demo"]
           :dependencies
           [[org.apache.beam/beam-runners-direct-java "2.16.0"]
+           [org.apache.beam/beam-examples-java "2.16.0"]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :experimental {:dependencies
                   [[org.javassist/javassist "3.26.0-GA"]]}

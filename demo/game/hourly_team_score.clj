@@ -80,7 +80,8 @@
         (concat
           args
           (th/->beam-args
-            {:custom-config
+            {:streaming true
+             :custom-config
              {:start-min "1970-01-01-00-00"
               :stop-min "2100-01-01-00-00"
               :window-duration 60

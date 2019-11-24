@@ -9,6 +9,7 @@ import javassist.util.proxy.ProxyFactory;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class TProxy {
@@ -46,12 +47,21 @@ public class TProxy {
 
         final ProxyFactory f = new ProxyFactory();
         f.setSuperclass(originalProxyClass.getSuperclass());
-        f.setInterfaces(originalProxyClass.getInterfaces());
+        f.setInterfaces(add_(originalProxyClass.getInterfaces(), Serializable.class));
         try {
             return f.create(new Class[0], new Object[0], new MethodHandlerImpl(proxyVar, args));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static Class<?>[] add_(Class<?>[] arr, Class<?> item) {
+        for (Class<?> i : arr)
+            if (i == item)
+                return arr;
+        final Class[] rv = Arrays.copyOf(arr, arr.length + 1);
+        rv[rv.length - 1] = item;
+        return rv;
     }
 
 }
