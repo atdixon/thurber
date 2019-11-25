@@ -25,7 +25,7 @@ benchmark
 
 parsimony
 ===
-* proxy wraps; use for any and all--coder, filename policy, etc.
+* proxy wraps; use for any and all--coder, filename policy, custom windows, etc.
     - TProxyThing(Var ref, Object... args)
         - args made available as *proxy-args* vector?
 
