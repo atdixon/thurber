@@ -4,15 +4,15 @@
             [clojure.string :as str]
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine)
            (org.apache.beam.sdk.values PCollection KV)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
-           (org.apache.beam.sdk.coders KvCoder CustomCoder)
+           (org.apache.beam.sdk.coders KvCoder CustomCoder IterableCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)))
 
 ;; --
@@ -68,8 +68,8 @@
     (when-let [rv (apply fn (concat args [(.element context)]))]
       (if (seq? rv)
         (doseq [v rv]
-          (.output *process-context* v))
-        (.output *process-context* rv)))))
+          (.output context v))
+        (.output context rv)))))
 
 ;; --
 
@@ -159,11 +159,9 @@
 ;; --
 
 (defn ^PTransform create* [coll]
-  (->
-    (if (map? coll)
-      (Create/of ^Map coll)
-      (Create/of ^Iterable (seq coll)))
-    (.withCoder nippy)))
+  (if (map? coll)
+    (-> (Create/of ^Map coll) (.withCoder nippy))
+    (-> (Create/of ^Iterable (seq coll)) (.withCoder nippy))))
 
 ;; --
 
@@ -180,6 +178,26 @@
 
 (defn ^SerializableFunction simple* [fn & args]
   (TSerializableFunction. fn args))
+
+;; --
+
+(defprotocol CombineFn
+  (create-accumulator [this])
+  (add-input [this acc input])
+  (merge-accumulators [this acc-coll])
+  (extract-output [this acc]))
+
+(defmacro def-combine [& body]
+  `(reify CombineFn
+     ~@body))
+
+(defn combine-globally [xf-var]
+  (Combine/globally
+    (TCombine. xf-var)))
+
+(defn combine-per-key [xf-var]
+  (Combine/perKey
+    (TCombine. xf-var)))
 
 ;; --
 
