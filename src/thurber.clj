@@ -4,9 +4,9 @@
             [clojure.string :as str]
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction)
            (org.apache.beam.sdk.values PCollection KV)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
@@ -100,10 +100,11 @@
            :else opts))
      (.as as))))
 
-(defn ^Pipeline create-pipeline [opts]
-  (-> (if (instance? PipelineOptions opts)
-        opts (create-options opts))
-    (Pipeline/create)))
+(defn ^Pipeline create-pipeline
+  ([] (Pipeline/create))
+  ([opts] (-> (if (instance? PipelineOptions opts)
+                opts (create-options opts))
+            (Pipeline/create))))
 
 (defn get-custom-config [obj]
   (if (instance? Pipeline obj)
@@ -179,6 +180,9 @@
 (defn ^SerializableFunction simple* [fn & args]
   (TSerializableFunction. fn args))
 
+(defn ^SerializableBiFunction simple-bi* [fn & args]
+  (TSerializableBiFunction. fn args))
+
 ;; --
 
 (defprotocol CombineFn
@@ -191,13 +195,17 @@
   `(reify CombineFn
      ~@body))
 
+(defn combiner* [xf-var]
+  (let [xf (deref xf-var)]
+    (cond
+      (satisfies? CombineFn xf) (TCombine. xf-var)
+      (fn? xf) (simple-bi* xf-var))))
+
 (defn combine-globally [xf-var]
-  (Combine/globally
-    (TCombine. xf-var)))
+  (Combine/globally (combiner* xf-var)))
 
 (defn combine-per-key [xf-var]
-  (Combine/perKey
-    (TCombine. xf-var)))
+  (Combine/perKey (combiner* xf-var)))
 
 ;; --
 

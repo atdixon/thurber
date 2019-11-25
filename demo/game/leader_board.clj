@@ -119,21 +119,21 @@
         gcp-project (-> parsed-opts ^GcpOptions (.as GcpOptions) (.getProject))
         game-events (th/apply! pipeline
                       (->game-events-xf (format "projects/%s/topics/%s" gcp-project (:topic custom-conf))))]
-    (th/apply!
-      game-events
-      (->calculate-team-scores-xf custom-conf)
-      (->write-to-big-query-xf "write-team-score-sums"
-        gcp-project (:dataset custom-conf)
-        (str (:leaderboard-table-name custom-conf) "_team")
-        team-score-row-schema #'->team-score-row))
-    (th/apply!
-      game-events
-      (->calculate-user-scores-xf custom-conf)
-      (->write-to-big-query-xf "write-user-score-sums"
-        gcp-project (:dataset custom-conf)
-        (str (:leaderboard-table-name custom-conf) "_user")
-        user-score-row-schema #'->user-score-row))
-    pipeline))
+    (doto pipeline
+      (th/apply!
+        game-events
+        (->calculate-team-scores-xf custom-conf)
+        (->write-to-big-query-xf "write-team-score-sums"
+          gcp-project (:dataset custom-conf)
+          (str (:leaderboard-table-name custom-conf) "_team")
+          team-score-row-schema #'->team-score-row))
+      (th/apply!
+        game-events
+        (->calculate-user-scores-xf custom-conf)
+        (->write-to-big-query-xf "write-user-score-sums"
+          gcp-project (:dataset custom-conf)
+          (str (:leaderboard-table-name custom-conf) "_user")
+          user-score-row-schema #'->user-score-row)))))
 
 (defn demo! [& args]
   (let [pipeline (create-pipeline

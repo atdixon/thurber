@@ -68,7 +68,7 @@
         (th/filter* #'filter-end-time (f/parse min-parser (:stop-min conf)))
         ;; Some Beam functions we can use directly by converting a Clojure function
         ;; to a simple* Beam function.
-        (WithTimestamps/of (th/simple* #'->timestamp))
+        (WithTimestamps/of (th/simple-bi* #'->timestamp))
         (Window/into
           (FixedWindows/of
             (Duration/standardMinutes (:window-duration conf))))
