@@ -17,16 +17,16 @@
 
 (defn- create-pipeline []
   (let [pipeline (th/create-pipeline)
-        data (th/create* [1 2 3 4 5])]
-    (doto pipeline
-      (th/apply!
-        data
-        (th/combine-globally #'sum-and-count-xf)
-        #'sink*)
-      (th/apply!
-        data
-        (th/combine-globally #'+)
-        #'sink*))))
+        data (th/apply! pipeline (th/create* [1 2 3 4 5]))]
+    (th/apply!
+      data
+      (th/combine-globally #'sum-and-count-xf)
+      #'sink*)
+    (th/apply!
+      data
+      (th/combine-globally #'+)
+      #'sink*)
+    pipeline))
 
 (defn demo! []
   (-> (create-pipeline)

@@ -48,7 +48,7 @@
 (defn demo! []
   (let [now (t/now)]
     (-> (create-pipeline
-         {:custom-config {:input-file "lorem.txt"
+         {:custom-config {:input-file "demo/word_count/lorem.txt"
                           :window-size 30
                           :min-timestamp (c/to-long (t/now))
                           :max-timestamp (c/to-long (t/plus now (t/hours 1)))}})

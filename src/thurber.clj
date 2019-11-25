@@ -114,48 +114,38 @@
 
 ;; --
 
-(defn ^PTransform coerce* [xf]
-  (cond
-    (var? xf) (cond
-                (fn? @xf) (ParDo/of (TDoFn. xf))
-                ; note: this is cute, allowing user to specify var holding a
-                ;       PTransform ... but let's not, let's make the user have
-                ;       to learn a thing.
-                #_#_(instance? PTransform @xf) @xf
-                :else (throw (ex-info "bad xf" {:unexpected-xf xf})))
-    (map? xf) (recur (:th/xform xf))
-    :else (if (instance? PTransform xf)
-            xf (throw (ex-info "bad xf" {:unexpected-xf xf})))))
+(defn pardo* [xf]
+  (ParDo/of (TDoFn. xf)))
 
-(defn- ^TCoder ->explicit-coder* [prev xf]
-  (cond
-    (var? xf) nippy
-    (map? xf) (let [c (:th/coder xf)]
-                (if (= c :th/inherit)
-                  (.getCoder prev) c))
-    :else nil))
+;; --
 
-(defn- ->name* [xf]
+(defn- ^TCoder ->explicit-coder* [prev nxf]
+  (when-let [c (:th/coder nxf)]
+    (if (= c :th/inherit)
+      (.getCoder prev) c)))
+
+(defn- ->normal-form* [xf]
   (cond
-    (var? xf) (-> xf meta :name name)
-    (map? xf) (or (:th/name xf) (recur (:th/xform xf)))
-    :else nil))
+    (var? xf) (merge {:th/name (-> xf meta :name name) :th/xform (pardo* xf) :th/coder nippy} (select-keys (meta xf) [:th/name :th/coder]))
+    (map? xf) (merge (->normal-form* (:th/xform xf)) (dissoc xf :th/xform))
+    (instance? PTransform xf) {:th/xform xf}))
 
 (defn ^PCollection apply!
   "Apply coerce*-able transforms to an input (Pipeline, PCollection, PBegin ...)"
   [input & xfs]
   (reduce
     (fn [acc xf]
-      (let [acc' ^PCollection (if-let [xf-name (->name* xf)]
-                                (.apply acc xf-name (coerce* xf))
-                                (.apply acc (coerce* xf)))
-            explicit-coder (->explicit-coder* acc xf)]
+      (let [nxf (->normal-form* xf)
+            acc' ^PCollection (if (:th/name nxf)
+                                (.apply acc (:th/name nxf) (:th/xform nxf))
+                                (.apply acc (:th/xform nxf)))
+            explicit-coder (->explicit-coder* acc nxf)]
         (when explicit-coder (.setCoder acc' explicit-coder)) acc')) input xfs))
 
-(defn ^PTransform comp* [comp-name & xfs]
-  (proxy [PTransform] [comp-name]
+(defn ^PTransform comp* [& [xf-or-name :as xfs]]
+  (proxy [PTransform] [(when (string? xf-or-name) xf-or-name)]
     (expand [^PCollection pc]
-      (apply apply! pc xfs))))
+      (apply apply! pc (if (string? xf-or-name) (rest xfs) xfs)))))
 
 ;; --
 
@@ -174,14 +164,14 @@
   (when (apply pred-fn args)
     (last args)))
 
-(defn ^PTransform filter* [pred-fn & args]
-  (apply partial* #'filter-impl pred-fn args))
+(defn ^PTransform filter* [pred-var & args]
+  (apply partial* #'filter-impl pred-var args))
 
-(defn ^SerializableFunction simple* [fn & args]
-  (TSerializableFunction. fn args))
+(defn ^SerializableFunction simple* [fn-var & args]
+  (TSerializableFunction. fn-var args))
 
-(defn ^SerializableBiFunction simple-bi* [fn & args]
-  (TSerializableBiFunction. fn args))
+(defn ^SerializableBiFunction simple-bi* [fn-var & args]
+  (TSerializableBiFunction. fn-var args))
 
 ;; --
 

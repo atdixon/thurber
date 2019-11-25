@@ -1,28 +1,13 @@
-NEXT UP:
-    - how to do combine
-        - deftype serializable but how to require-ns on remote-side
-
-
-* step names
 * metrics
 * job name
 *
 
+* thurber-catalog (Count/perKey etc but clojurey) ...fujion?
 
-* link: https://beam.apache.org/get-started/wordcount-example/
-*     : https://beam.apache.org/get-started/mobile-gaming-example/
+---
 
-
-basic
-===
-* make name optional for comp*
-* count-per-key is not a generic xform
-*
-
-misc
-===
-* convert ->extract-sum-and-score-xf example so that KV never
-        appears at this api level; need "fujion" then?
+* https://beam.apache.org/get-started/wordcount-example/
+* https://beam.apache.org/get-started/mobile-gaming-example/
 
 test
 ===
