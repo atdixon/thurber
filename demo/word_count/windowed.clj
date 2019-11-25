@@ -11,8 +11,8 @@
 ;; clj-time is used because Beam standardizes on Joda time.
 
 ;; Thurber DoFn functions can take extra parameters at the front of their arg
-;; lists. `th/partial*` is used to provide these serializable parameters,
-;; usually config values, to such functions.
+;; lists. Additional args to `th/pardo*` provide these serializable parameters,
+;; (often config values) to these functions.
 (defn- add-timestamp [{:keys [min-timestamp max-timestamp]} sentence]
   (let [random-timestamp (->> (rand-int (- max-timestamp min-timestamp))
                               (+ min-timestamp)
@@ -34,7 +34,7 @@
       (th/apply!
        (-> (TextIO/read)
            (.from ^String (:input-file conf)))
-       (th/partial* #'add-timestamp conf)
+       (th/pardo* #'add-timestamp conf)
        ;; Here we window into fixed windows. There is no need for Thurber to
        ;; to try to sugar-coat Beam window configuration; Clojure's Java interop
        ;; works perfectly fine in this case.

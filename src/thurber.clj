@@ -114,8 +114,22 @@
 
 ;; --
 
-(defn pardo* [xf]
-  (ParDo/of (TDoFn. xf)))
+(defn ^PTransform pardo*
+  [xfn & args]
+  (ParDo/of (TDoFn. xfn (object-array args))))
+
+(defn- filter-impl [pred-fn & args]
+  (when (apply pred-fn args)
+    (last args)))
+
+(defn ^PTransform filter* [pred-var & args]
+  (apply pardo* #'filter-impl pred-var args))
+
+(defn ^SerializableFunction simple* [fn-var & args]
+  (TSerializableFunction. fn-var args))
+
+(defn ^SerializableBiFunction simple-bi* [fn-var & args]
+  (TSerializableBiFunction. fn-var args))
 
 ;; --
 
@@ -156,25 +170,6 @@
 
 ;; --
 
-(defn ^PTransform partial*
-  [xfn & args]
-  (ParDo/of (TDoFn. xfn (object-array args))))
-
-(defn- filter-impl [pred-fn & args]
-  (when (apply pred-fn args)
-    (last args)))
-
-(defn ^PTransform filter* [pred-var & args]
-  (apply partial* #'filter-impl pred-var args))
-
-(defn ^SerializableFunction simple* [fn-var & args]
-  (TSerializableFunction. fn-var args))
-
-(defn ^SerializableBiFunction simple-bi* [fn-var & args]
-  (TSerializableBiFunction. fn-var args))
-
-;; --
-
 (defprotocol CombineFn
   (create-accumulator [this])
   (add-input [this acc input])
@@ -199,7 +194,7 @@
 
 ;; --
 
-(defn ->kv
+(defn ^{:th/coder nippy-kv} ->kv
   ([seg]
    (KV/of seg seg))
   ([seg key-fn]

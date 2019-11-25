@@ -13,14 +13,9 @@ test
 ===
 * unit tests all demos, so demos don't regress
 
-code doc
+docs
 ===
 * ->kv is powerful, explain it. validate fn args are vars?
-
-nice to haves
-===
-* {^:th/coder coder/nippy-kv} on dofn fn
-* partial* => {:th/params [] ...}
 
 benchmark
 ===

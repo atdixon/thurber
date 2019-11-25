@@ -20,7 +20,7 @@
 
 (defn ->extract-sum-and-score-xf [field]
   (th/comp* "extract-sum-and-score"
-    {:th/xform (th/partial* #'->field-and-score-kv field)
+    {:th/xform (th/pardo* #'->field-and-score-kv field)
      :th/coder th/nippy-kv}
     (Sum/integersPerKey)
     ;; It is not necessary to convert Beam's KV type to Clojure; however

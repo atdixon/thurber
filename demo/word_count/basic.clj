@@ -28,8 +28,7 @@
   (th/comp*
     "count-words"
     #'extract-words
-    {:th/xform #'th/->kv
-     :th/coder th/nippy-kv}
+    #'th/->kv
     (Count/perKey)
     ;; Not necessary to convert to KV to clj (ie MapEntry)
     ;; but this allows downstream to use Clojure destructuring.
