@@ -6,7 +6,7 @@
   (log/info elem))
 
 (def ^:private sum-and-count-xf
-  (th/def-combine
+  (th/def-combiner
     (create-accumulator [_] {:sum 0 :count 0})
     (add-input [_ acc input]
       (-> acc

@@ -176,7 +176,7 @@
   (merge-accumulators [this acc-coll])
   (extract-output [this acc]))
 
-(defmacro def-combine [& body]
+(defmacro def-combiner [& body]
   `(reify CombineFn
      ~@body))
 
