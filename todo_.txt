@@ -47,6 +47,14 @@ clip
 ===
 * create gs://thurber-demo
 * lein with-profile +demo,+experimental,+dataflow uberjar
+
+* lein with-profile +demo,+experimental,+dataflow run -m game.user-score-opt/demo! \
+    --appName="thurber-demo/user-score-opt" \
+    --runner=DataflowRunner --region=us-central1 --project=atdixon \
+    --gcpTempLocation=gs://thurber-demo/gcp-temp \
+    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar \
+    --profilingAgentConfiguration='{"APICurated":true}'
+
 * lein with-profile +demo,+experimental,+dataflow run -m game.leader-board/demo! \
     --appName="thurber-demo/leader-board" \
     --runner=DataflowRunner --region=us-central1 --project=atdixon \

@@ -26,7 +26,7 @@ public final class TDoFn extends org.apache.beam.sdk.transforms.DoFn<Object, Obj
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window) {
-        Core.apply__.applyTo(RT.listStar(fn, options, context, window, RT.seq(args)));
+        Core.apply__.invoke(fn, options, context, window, args);
     }
 
 }

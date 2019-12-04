@@ -61,11 +61,11 @@
                ^PipelineOptions options
                ^DoFn$ProcessContext context
                ^BoundedWindow window
-               & args]
+               args-array]
   (binding [*pipeline-options* options
             *process-context* context
             *element-window* window]
-    (when-let [rv (apply fn (concat args [(.element context)]))]
+    (when-let [rv (apply fn (concat args-array [(.element context)]))]
       (if (seq? rv)
         (doseq [v rv]
           (.output context v))
@@ -114,16 +114,23 @@
 
 ;; --
 
-(defn ^PTransform pardo*
-  [xfn & args]
-  (ParDo/of (TDoFn. xfn (object-array args))))
+(defn- var->name [v]
+  (or (:th/name (meta v)) (:name (meta v)))
+  (-> v meta :name name))
+
+(defn ^PTransform partial*
+  [fn-var & args]
+  {:th/xform fn-var
+   :th/params args})
 
 (defn- filter-impl [pred-fn & args]
   (when (apply pred-fn args)
     (last args)))
 
 (defn ^PTransform filter* [pred-var & args]
-  (apply pardo* #'filter-impl pred-var args))
+  {:th/name (format "filter*/%s" (var->name pred-var))
+   :th/xform #'filter-impl
+   :th/params (conj args pred-var)})
 
 (defn ^SerializableFunction simple* [fn-var & args]
   (TSerializableFunction. fn-var args))
@@ -138,18 +145,22 @@
     (if (= c :th/inherit)
       (.getCoder prev) c)))
 
-(defn- ->normal-form* [xf]
-  (cond
-    (var? xf) (merge {:th/name (-> xf meta :name name) :th/xform (pardo* xf) :th/coder nippy} (select-keys (meta xf) [:th/name :th/coder]))
-    (map? xf) (merge (->normal-form* (:th/xform xf)) (dissoc xf :th/xform))
-    (instance? PTransform xf) {:th/xform xf}))
+(defn- ->normal-xf*
+  ([xf] (->normal-xf* xf {}))
+  ([xf override]
+   (cond
+     (instance? PTransform xf) (merge {:th/xform xf} override)
+     (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
+     (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
+                              (select-keys (meta xf) [:th/name :th/coder :th/params]) override)]
+                 (assoc normal :th/xform (ParDo/of (TDoFn. xf (object-array (:th/params normal)))))))))
 
 (defn ^PCollection apply!
-  "Apply coerce*-able transforms to an input (Pipeline, PCollection, PBegin ...)"
+  "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
   [input & xfs]
   (reduce
     (fn [acc xf]
-      (let [nxf (->normal-form* xf)
+      (let [nxf (->normal-xf* xf)
             acc' ^PCollection (if (:th/name nxf)
                                 (.apply acc (:th/name nxf) (:th/xform nxf))
                                 (.apply acc (:th/xform nxf)))
@@ -187,10 +198,12 @@
       (fn? xf) (simple-bi* xf-var))))
 
 (defn combine-globally [xf-var]
-  (Combine/globally (combiner* xf-var)))
+  {:th/name (var->name xf-var)
+   :th/xform (Combine/globally (combiner* xf-var))})
 
 (defn combine-per-key [xf-var]
-  (Combine/perKey (combiner* xf-var)))
+  {:th/name (var->name xf-var)
+   :th/xform (Combine/perKey (combiner* xf-var))})
 
 ;; --
 

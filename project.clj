@@ -32,7 +32,8 @@
            [org.apache.beam/beam-examples-java "2.16.0"]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :experimental {:dependencies
-                  [[org.javassist/javassist "3.26.0-GA"]]}
+                  [[org.javassist/javassist "3.26.0-GA"]
+                   [deercreeklabs/lancaster "0.8.5"]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]
                [org.apache.beam/beam-runners-google-cloud-dataflow-java "2.16.0"]]}})
