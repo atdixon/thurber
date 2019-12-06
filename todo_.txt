@@ -34,15 +34,6 @@ misc
 ===
 * https://beam.apache.org/documentation/sdks/java-extensions/ (sorting espesh)
 
-
-* I think there is something imporant about MaxBy/latestTriggerAndWindow etc.
-    ==> but perhaps NOT unless the next agg is over smallish stuff in which case
-        use view? or does this MaxBy/**^^ allow for window cleanup?
-
-perf
-====
-* try avro/abracad coder vs nippy in cases see how it goes
-
 clip
 ===
 * create gs://thurber-demo
@@ -74,3 +65,8 @@ LEADERBOARD example:
 ===
 * separate demo project using pegged version of thurber
 * shade javassist
+
+===
+perf tips (after correct pipeline)
+- use type hints
+- use defrecords (faster construction)

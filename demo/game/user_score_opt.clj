@@ -11,6 +11,8 @@
            (java.io OutputStream InputStream DataOutputStream)
            (java.nio ByteBuffer)))
 
+(defrecord GameActionInfo [user team score timestamp])
+
 (lan/def-record-schema game-action-info-schema
   [:user lan/string-schema]
   [:team lan/string-schema]
@@ -37,13 +39,13 @@
 
 (defn- ^{:th/coder game-action-info-coder} parse-event [^String elem]
   (try
-    (let [[user team score ts :as parts] (.split elem "," -1)
-          _ (map str/trim parts)]
+    (let [[user team score ts :as parts] (.split elem "," -1)]
       (if (>= (alength parts) 4)
-        {:user (.trim ^String user)
-         :team (.trim ^String team)
-         :score (Integer/parseInt (.trim ^String score))
-         :timestamp (Long/parseLong (.trim ^String ts))}
+        (->GameActionInfo
+          (.trim ^String user)
+          (.trim ^String team)
+          (Integer/parseInt (.trim ^String score))
+          (Long/parseLong (.trim ^String ts)))
         (log/warnf "parse error on %s, missing part" elem)))
     (catch NumberFormatException e
       (log/warnf "parse error on %s, %s" elem (.getMessage e)))))
@@ -59,7 +61,7 @@
     (th/partial* #'->field-and-score-kv field)
     (Sum/integersPerKey)))
 
-(defn- format-row [^KV kv]
+(defn- ^{:th/coder (StringUtf8Coder/of)} format-row [^KV kv]
   (format "user: %s, total_score: %d" (.getKey kv) (.getValue kv)))
 
 (defn- ->write-to-text-xf [output row-formatter]
