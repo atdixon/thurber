@@ -1,11 +1,11 @@
 package thurber.java;
 
-import clojure.lang.RT;
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 
-public final class TDoFn extends org.apache.beam.sdk.transforms.DoFn<Object, Object> {
+public final class TDoFn extends DoFn<Object, Object> {
 
     private final Var fn;
     private final Object[] args;

@@ -5,9 +5,9 @@
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy])
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction)
-           (java.util Map)
+           (java.util Map List)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction)
-           (org.apache.beam.sdk.values PCollection KV)
+           (org.apache.beam.sdk.values PCollection KV TupleTag TupleTagList)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
@@ -46,6 +46,14 @@
 
 ;; --
 
+(defn- ^TupleTag ->TupleTag [kw]
+  (TupleTag. (name kw)))
+
+(defn- ^TupleTagList ->TupleTagList [kw-coll]
+  (TupleTagList/of ^List (into [] (map ->TupleTag kw-coll))))
+
+;; --
+
 (def ^:dynamic ^PipelineOptions *pipeline-options* nil)
 (def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
 (def ^:dynamic ^BoundedWindow *element-window* nil)
@@ -53,9 +61,6 @@
 (def ^:dynamic *proxy-args* nil)
 
 ;; --
-
-;; todo consider (try catch) w/ nice reporting around call here
-;; todo tagged multi-output [:one <seq> ...]
 
 (defn apply** [fn
                ^PipelineOptions options
@@ -66,10 +71,16 @@
             *process-context* context
             *element-window* window]
     (when-let [rv (apply fn (concat args-array [(.element context)]))]
-      (if (seq? rv)
-        (doseq [v rv]
-          (.output context v))
-        (.output context rv)))))
+      (cond
+        (vector? rv) (doseq [[kw rv'] (partition 2 2 rv)]
+                       (let [tt (->TupleTag kw)]
+                         (if (seq? rv')
+                           (doseq [v' rv']
+                             (.output context tt v'))
+                           (.output context tt rv'))))
+        (seq? rv) (doseq [v rv]
+                    (.output context v))
+        :else (.output context rv)))))
 
 ;; --
 
@@ -152,11 +163,18 @@
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
-                              (select-keys (meta xf) [:th/name :th/coder :th/params]) override)]
-                 (assoc normal :th/xform (ParDo/of (TDoFn. xf (object-array (:th/params normal)))))))))
+                              (select-keys (meta xf) [:th/name :th/coder :th/params :th/output-tags]) override)]
+                 (assoc normal
+                   :th/xform
+                   (if-let [output-tags (not-empty (:th/output-tags normal))]
+                     (-> (ParDo/of (TDoFn. xf (object-array (:th/params normal))))
+                       (.withOutputTags (->TupleTag (first output-tags))
+                         (->TupleTagList (rest output-tags))))
+                     (ParDo/of (TDoFn. xf (object-array (:th/params normal))))))))))
 
-(defn ^PCollection apply!
-  "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
+(defn apply!
+  "Apply transforms to an input (Pipeline, PCollection, PBegin ...); answers PCollection
+   or PCollectionTuple..."
   [input & xfs]
   (reduce
     (fn [acc xf]
