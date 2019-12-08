@@ -2,6 +2,8 @@
   (:require [thurber :as th]
             [clojure.tools.logging :as log]))
 
+;; Simple demonstration of combine.
+
 (defn- sink* [elem]
   (log/info elem))
 

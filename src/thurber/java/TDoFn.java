@@ -1,6 +1,5 @@
 package thurber.java;
 
-import clojure.lang.RT;
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;

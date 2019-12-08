@@ -7,7 +7,7 @@
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction)
-           (org.apache.beam.sdk.values PCollection KV)
+           (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
@@ -73,8 +73,11 @@
 
 ;; --
 
+(defn proxy-with-signature* [proxy-var sig & args]
+  (TProxy/create proxy-var sig (into-array Object args)))
+
 (defn proxy* [proxy-var & args]
-  (TProxy/create proxy-var (into-array Object args)))
+  (proxy-with-signature* proxy-var nil args))
 
 ;; --
 
@@ -119,18 +122,27 @@
   (-> v meta :name name))
 
 (defn ^PTransform partial*
-  [fn-var & args]
-  {:th/xform fn-var
-   :th/params args})
+  [fn-var-or-name & args]
+  (if (string? fn-var-or-name)
+    {:th/name fn-var-or-name
+     :th/xform (first args)
+     :th/params (rest args)}
+    {:th/name (format "partial*/%s" (var->name fn-var-or-name))
+     :th/xform fn-var-or-name
+     :th/params args}))
 
 (defn- filter-impl [pred-fn & args]
   (when (apply pred-fn args)
     (last args)))
 
-(defn ^PTransform filter* [pred-var & args]
-  {:th/name (format "filter*/%s" (var->name pred-var))
-   :th/xform #'filter-impl
-   :th/params (conj args pred-var)})
+(defn ^PTransform filter* [pred-var-or-name & args]
+  (if (string? pred-var-or-name)
+    {:th/name pred-var-or-name
+     :th/xform #'filter-impl
+     :th/params args}
+    {:th/name (format "filter*/%s" (var->name pred-var-or-name))
+     :th/xform #'filter-impl
+     :th/params (conj args pred-var-or-name)}))
 
 (defn ^SerializableFunction simple* [fn-var & args]
   (TSerializableFunction. fn-var args))
@@ -145,6 +157,28 @@
     (if (= c :th/inherit)
       (.getCoder prev) c)))
 
+(defn- ->pardo [xf params]
+  (let [tags (into [] (filter #(instance? TupleTag %) params))
+        views (into [] (filter #(instance? PCollectionView %)) params)]
+    (cond-> (ParDo/of (TDoFn. xf (object-array params)))
+      (not-empty tags)
+      (.withOutputTags ^TupleTag (first tags)
+        (reduce (fn [^TupleTagList acc ^TupleTag tag]
+                  (.and acc tag)) (TupleTagList/empty) (rest tags)))
+      (not-empty views)
+      (.withSideInputs
+        ^Iterable (into [] (filter #(instance? PCollectionView %)) params)))))
+
+(defn- set-coder! [pcoll-or-tuple coder]
+  (cond
+    (instance? PCollection pcoll-or-tuple) (.setCoder ^PCollection pcoll-or-tuple coder)
+    (instance? PCollectionTuple pcoll-or-tuple) (do
+                                                  (->> ^PCollectionTuple pcoll-or-tuple
+                                                    (.getAll)
+                                                    (.values)
+                                                    (run! #(.setCoder ^PCollection % coder)))
+                                                  pcoll-or-tuple)))
+
 (defn- ->normal-xf*
   ([xf] (->normal-xf* xf {}))
   ([xf override]
@@ -152,20 +186,23 @@
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
-                              (select-keys (meta xf) [:th/name :th/coder :th/params]) override)]
-                 (assoc normal :th/xform (ParDo/of (TDoFn. xf (object-array (:th/params normal)))))))))
+                                   (select-keys (meta xf) [:th/name :th/coder :th/params]) override)]
+                 (assoc normal :th/xform (->pardo xf (:th/params normal)))))))
 
 (defn ^PCollection apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
   [input & xfs]
   (reduce
-    (fn [acc xf]
-      (let [nxf (->normal-xf* xf)
-            acc' ^PCollection (if (:th/name nxf)
-                                (.apply acc (:th/name nxf) (:th/xform nxf))
-                                (.apply acc (:th/xform nxf)))
-            explicit-coder (->explicit-coder* acc nxf)]
-        (when explicit-coder (.setCoder acc' explicit-coder)) acc')) input xfs))
+   (fn [acc xf]
+     (let [nxf (->normal-xf* xf)
+           ;; Take care here. acc' may commonly be PCollection but can also be
+           ;;    PCollectionTuple or PCollectionView, eg.
+           acc' (if (:th/name nxf)
+                  (.apply acc (:th/name nxf) (:th/xform nxf))
+                  (.apply acc (:th/xform nxf)))
+           explicit-coder (->explicit-coder* acc nxf)]
+       (when explicit-coder
+         (set-coder! acc' explicit-coder)) acc')) input xfs))
 
 (defn ^PTransform comp* [& [xf-or-name :as xfs]]
   (proxy [PTransform] [(when (string? xf-or-name) xf-or-name)]
@@ -191,7 +228,7 @@
   `(reify CombineFn
      ~@body))
 
-(defn combiner* [xf-var]
+(defn- combiner* [xf-var]
   (let [xf (deref xf-var)]
     (cond
       (satisfies? CombineFn xf) (TCombine. xf-var)
@@ -210,9 +247,9 @@
 (defn ^{:th/coder nippy-kv} ->kv
   ([seg]
    (KV/of seg seg))
-  ([seg key-fn]
+  ([key-fn seg]
    (KV/of (key-fn seg) seg))
-  ([seg key-fn val-fn]
+  ([key-fn val-fn seg]
    (KV/of (key-fn seg) (val-fn seg))))
 
 ;; --

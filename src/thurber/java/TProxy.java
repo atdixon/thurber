@@ -6,6 +6,7 @@ import clojure.lang.Var;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -41,13 +42,14 @@ public class TProxy {
         }
     }
 
-    public static Object create(Var proxyVar, Object... args) {
+    public static Object create(Var proxyVar, @Nullable String signature, Object... args) {
         final Class<?> originalProxyClass
             = proxyVar.deref().getClass();
 
         final ProxyFactory f = new ProxyFactory();
         f.setSuperclass(originalProxyClass.getSuperclass());
         f.setInterfaces(add_(originalProxyClass.getInterfaces(), Serializable.class));
+        f.setGenericSignature(signature);
         try {
             return f.create(new Class[0], new Object[0], new MethodHandlerImpl(proxyVar, args));
         } catch (Exception e) {

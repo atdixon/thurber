@@ -70,3 +70,6 @@ LEADERBOARD example:
 perf tips (after correct pipeline)
 - use type hints
 - use defrecords (faster construction)
+
+- so far my clojure user-score pipeline is 4x slower than beam Java version
+    (seems cost in invocation of apply** from java and making bindings...)
