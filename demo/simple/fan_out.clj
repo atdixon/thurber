@@ -1,8 +1,7 @@
 (ns simple.fan-out
   (:require [thurber :as th]
             [clojure.tools.logging :as log])
-  (:import (org.apache.beam.sdk.transforms Mean View)
-           (org.apache.beam.sdk.values TupleTag PCollectionTuple)))
+  (:import (org.apache.beam.sdk.values TupleTag PCollectionTuple)))
 
 ;; Simple demonstration of using multi-output/tags.
 
@@ -22,14 +21,14 @@
         fanned ^PCollectionTuple
                (th/apply! data (th/partial* #'fan* even-tag odd-tag))]
     (th/apply!
-      (.get fanned "even")
-      (th/partial* #'sink* "even"))
+     (.get fanned "even")
+     (th/partial* #'sink* "even"))
     (th/apply!
-      (.get fanned "odd")
-      (th/partial* #'sink* "odd"))
+     (.get fanned "odd")
+     (th/partial* #'sink* "odd"))
     pipeline))
 
 (defn demo! []
   (-> (create-pipeline)
-    (.run)))
+      (.run)))
 

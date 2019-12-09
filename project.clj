@@ -12,6 +12,7 @@
   :dependencies
   [[camel-snake-kebab "0.4.0"]
    [clj-time "0.15.2"]
+   [com.google.code.findbugs/jsr305 "3.0.2"]
    [com.taoensso/nippy "2.14.0"]
    [org.clojure/data.json "0.2.6"]
    [org.clojure/clojure "1.10.1"]

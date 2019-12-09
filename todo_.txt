@@ -4,6 +4,8 @@
 
 * thurber-catalog (Count/perKey etc but clojurey) ...fujion?
 
+* keyword in apply! comp* acts like fn???
+
 ---
 
 * https://beam.apache.org/get-started/wordcount-example/
