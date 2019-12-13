@@ -1,11 +1,17 @@
 package thurber.java.exp;
 
-import clojure.lang.*;
+import clojure.lang.IMeta;
+import clojure.lang.ISeq;
+import clojure.lang.Keyword;
+import clojure.lang.RT;
+import clojure.lang.Var;
 import org.apache.beam.sdk.io.UnboundedSource;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 import org.joda.time.Duration;
 import org.joda.time.Instant;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import thurber.java.Core;
 
 import javax.annotation.Nullable;
@@ -18,6 +24,8 @@ import java.util.NoSuchElementException;
  * by a single thread. */
 @NotThreadSafe
 public final class UnboundedSeqReader extends UnboundedSource.UnboundedReader<Object> {
+
+    private static final Logger logger = LoggerFactory.getLogger(UnboundedSeqReader.class);
 
     /** CheckpointMark. */
     static final class CustomCheckpointMark implements UnboundedSource.CheckpointMark, Serializable {
@@ -150,10 +158,7 @@ public final class UnboundedSeqReader extends UnboundedSource.UnboundedReader<Ob
         }
         if (this.seq.first() != null) {
             // we've started or advanced but Beam did not call getCurrent yet? FINE.
-            Instant ts = toEventTimestamp(this.seq.first());
-            if (ts == null)
-                throw new RuntimeException(":th/event-timestamp always req'd");
-            return ts;
+            return BoundedWindow.TIMESTAMP_MIN_VALUE;
         }
         throw new IllegalStateException("unexpected?");
     }

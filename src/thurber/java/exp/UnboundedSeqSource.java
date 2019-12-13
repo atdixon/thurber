@@ -41,8 +41,7 @@ public final class UnboundedSeqSource extends UnboundedSource<Object, UnboundedS
 
     @Override
     public Coder<Object> getOutputCoder() {
-        //noinspection unchecked
-        return (Coder<Object>) Core.nippy_.deref();
+        return Core.nippy_deref_;
     }
 
     @Override

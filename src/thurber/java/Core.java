@@ -3,6 +3,7 @@ package thurber.java;
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
 import clojure.lang.Var;
+import org.apache.beam.sdk.coders.Coder;
 
 public class Core {
 
@@ -15,8 +16,12 @@ public class Core {
     }
 
     static IFn apply__ = Clojure.var("thurber", "apply**");
+    static IFn apply_timer__ = Clojure.var("thurber", "apply-timer**");
 
-    public static Var nippy_ = (Var) Clojure.var("thurber", "nippy");
+    static Var nippy_ = (Var) Clojure.var("thurber", "nippy");
+
+    @SuppressWarnings("unchecked")
+    public static Coder<Object> nippy_deref_ = (Coder<Object>) nippy_.deref();
 
     static IFn create_accumulator_ = Clojure.var("thurber", "create-accumulator");
     static IFn add_input_ = Clojure.var("thurber", "add-input");

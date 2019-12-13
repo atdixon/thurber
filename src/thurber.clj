@@ -4,16 +4,17 @@
             [clojure.string :as str]
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder IterableCoder)
-           (java.io DataInputStream InputStream DataOutputStream OutputStream)))
+           (java.io DataInputStream InputStream DataOutputStream OutputStream)
+           (org.apache.beam.sdk.state ValueState TimerSpec Timer)))
 
 ;; --
 
@@ -49,27 +50,47 @@
 (def ^:dynamic ^PipelineOptions *pipeline-options* nil)
 (def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
 (def ^:dynamic ^BoundedWindow *element-window* nil)
+(def ^:dynamic ^ValueState *value-state* nil)
+(def ^:dynamic ^Timer *event-timer* nil)
+(def ^:dynamic ^DoFn$OnTimerContext *timer-context* nil)
 
 (def ^:dynamic *proxy-args* nil)
 
 ;; --
 
-;; todo consider (try catch) w/ nice reporting around call here
-;; todo tagged multi-output [:one <seq> ...]
+(defn apply**
+  ([fn
+    ^PipelineOptions options
+    ^DoFn$ProcessContext context
+    ^BoundedWindow window
+    args-array]
+   (apply** fn options context window nil nil args-array))
+  ([fn
+    ^PipelineOptions options
+    ^DoFn$ProcessContext context
+    ^BoundedWindow window
+    ^ValueState state
+    ^Timer timer
+    args-array]
+   (binding [*pipeline-options* options
+             *process-context* context
+             *element-window* window
+             *value-state* state
+             *event-timer* timer]
+     (when-let [rv (apply fn (concat args-array [(.element context)]))]
+       (if (seq? rv)
+         (doseq [v rv]
+           (.output context v))
+         (.output context rv))))))
 
-(defn apply** [fn
-               ^PipelineOptions options
-               ^DoFn$ProcessContext context
-               ^BoundedWindow window
-               args-array]
-  (binding [*pipeline-options* options
-            *process-context* context
-            *element-window* window]
-    (when-let [rv (apply fn (concat args-array [(.element context)]))]
-      (if (seq? rv)
-        (doseq [v rv]
-          (.output context v))
-        (.output context rv)))))
+(defn apply-timer**
+  [timer-fn ^DoFn$OnTimerContext context ^ValueState state]
+  (binding [*value-state* state
+            *timer-context* context]
+    (let [rv (timer-fn)]
+      (when (some? rv)
+        (throw (RuntimeException.
+                 "for now, output from timer func must be imperative"))))))
 
 ;; --
 
@@ -157,10 +178,12 @@
     (if (= c :th/inherit)
       (.getCoder prev) c)))
 
-(defn- ->pardo [xf params]
+(defn- ->pardo [xf params stateful? timer-fn]
   (let [tags (into [] (filter #(instance? TupleTag %) params))
         views (into [] (filter #(instance? PCollectionView %)) params)]
-    (cond-> (ParDo/of (TDoFn. xf (object-array params)))
+    (cond-> (ParDo/of (if (or stateful? timer-fn)
+                        (TDoFn_Stateful. xf timer-fn (object-array params))
+                        (TDoFn. xf (object-array params))))
       (not-empty tags)
       (.withOutputTags ^TupleTag (first tags)
         (reduce (fn [^TupleTagList acc ^TupleTag tag]
@@ -186,8 +209,9 @@
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
-                                   (select-keys (meta xf) [:th/name :th/coder :th/params]) override)]
-                 (assoc normal :th/xform (->pardo xf (:th/params normal)))))))
+                                   (select-keys (meta xf) [:th/name :th/coder :th/params :th/stateful]) override)]
+                 (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/stateful normal)
+                                           (:th/timer-fn normal)))))))
 
 (defn ^PCollection apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"

@@ -54,6 +54,12 @@ clip
     --gcpTempLocation=gs://thurber-demo/gcp-temp \
     --filesToStage=target/thurber-0.1.0-alpha-standalone.jar
 
+lein with-profile +demo,+experimental,+dataflow run -m simple.session-chop/demo! \
+    --appName="thurber-demo/session-chop" \
+    --runner=DataflowRunner --region=us-central1 --project=atdixon \
+    --gcpTempLocation=gs://thurber-demo/gcp-temp \
+    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar
+
 NO WORK:
 lein with-profile +demo,+experimental,+dataflow run -m org.apache.beam.examples.complete.game.injector.Injector \
     atdixon projects/atdixon/topics/thurber-demo-game none
