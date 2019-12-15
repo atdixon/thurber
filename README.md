@@ -13,19 +13,19 @@ A thin, muscular Clojure API for [Apache Beam](https://beam.apache.org/) and
 
 ## Principles
 
-* Enable Clojure
+* **Enable Clojure**
     * Bring Clojure's powerful, expressive tookit (destructuring,
       immutability, REPL, async tools, etc etc) to Apache Beam.
-* REPL Friendly
+* **REPL Friendly**
     * Build and test your pipelines incrementally in the REPL. 
     * Learn Beam semantics (windowing, triggering) interactively. 
-* No Macros
-* No AOT
-* Bypassable API
+* **No Macros**
+* **No AOT**
+* **Bypassable API**
     * No API lock-in. Pipelines can be composed of Clojure/thurber and Java 
       transforms. Don't like **thurber**? Incrementally refactor your pipeline
       back to Java.
-* Not Afraid of Java Interop
+* **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) works 
       cleanly with Beam, embrace it.
 
