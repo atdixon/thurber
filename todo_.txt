@@ -1,83 +1,28 @@
 * metrics
 * job name
-*
 
-* thurber-catalog (Count/perKey etc but clojurey) ...fujion?
+* dataflow/gaming docs
+    * lein with-profile +dev,+dataflow uberjar
+    * lein with-profile +dev,+dataflow run -m game.user-score-opt/demo! \
+          --appName="thurber-demo/user-score-opt" \
+          --runner=DataflowRunner --region=us-central1 --project=atdixon \
+          --gcpTempLocation=gs://thurber-demo/gcp-temp \
+          --filesToStage=target/thurber-0.1.0-alpha-standalone.jar \
+          --profilingAgentConfiguration='{"APICurated":true}'
+    * leaderboard example requires:
+        * create topic, dataset, and deploy pipline and running Injector
 
-* keyword in apply! comp* acts like fn???
+* keyword is a serializable fn, like fn-vars
 
----
+* inline comps
+* fujion
 
-* https://beam.apache.org/get-started/wordcount-example/
-* https://beam.apache.org/get-started/mobile-gaming-example/
+* unit test more demos
 
-test
-===
-* unit tests all demos, so demos don't regress
+* docs on ->kv, partial*, etc.
 
-docs
-===
-* ->kv is powerful, explain it. validate fn args are vars?
+* benchmarks
 
-benchmark
-===
-* nominal checking w/ notes
+* how extensively can proxy be used
 
-* profile using dataflow (and compare to java versions)
-
-parsimony
-===
-* proxy wraps; use for any and all--coder, filename policy, custom windows, etc.
-    - TProxyThing(Var ref, Object... args)
-        - args made available as *proxy-args* vector?
-
-
-misc
-===
-* https://beam.apache.org/documentation/sdks/java-extensions/ (sorting espesh)
-
-clip
-===
-* create gs://thurber-demo
-* lein with-profile +demo,+experimental,+dataflow uberjar
-
-* lein with-profile +demo,+experimental,+dataflow run -m game.user-score-opt/demo! \
-    --appName="thurber-demo/user-score-opt" \
-    --runner=DataflowRunner --region=us-central1 --project=atdixon \
-    --gcpTempLocation=gs://thurber-demo/gcp-temp \
-    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar \
-    --profilingAgentConfiguration='{"APICurated":true}'
-
-* lein with-profile +demo,+experimental,+dataflow run -m game.leader-board/demo! \
-    --appName="thurber-demo/leader-board" \
-    --runner=DataflowRunner --region=us-central1 --project=atdixon \
-    --gcpTempLocation=gs://thurber-demo/gcp-temp \
-    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar
-
-lein with-profile +demo,+experimental,+dataflow run -m simple.session-chop/demo! \
-    --appName="thurber-demo/session-chop" \
-    --runner=DataflowRunner --region=us-central1 --project=atdixon \
-    --gcpTempLocation=gs://thurber-demo/gcp-temp \
-    --filesToStage=target/thurber-0.1.0-alpha-standalone.jar
-
-NO WORK:
-lein with-profile +demo,+experimental,+dataflow run -m org.apache.beam.examples.complete.game.injector.Injector \
-    atdixon projects/atdixon/topics/thurber-demo-game none
-
-LEADERBOARD example:
-    - create topic
-    - create dataset
-    - run/deploy pipeline
-    - run Injector w/ simple name of topic
-
-===
-* separate demo project using pegged version of thurber
-* shade javassist
-
-===
-perf tips (after correct pipeline)
-- use type hints
-- use defrecords (faster construction)
-
-- so far my clojure user-score pipeline is 4x slower than beam Java version
-    (seems cost in invocation of apply** from java and making bindings...)
+* https://beam.apache.org/documentation/sdks/java-extensions/

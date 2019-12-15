@@ -3,8 +3,9 @@
             [clojure.data.json :as json]
             [clojure.string :as str]
             [clojure.walk :as walk]
-            [taoensso.nippy :as nippy])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo GroupByKey DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext)
+            [taoensso.nippy :as nippy]
+            [clojure.tools.logging :as log])
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
@@ -12,9 +13,9 @@
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
            (clojure.lang MapEntry)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
-           (org.apache.beam.sdk.coders KvCoder CustomCoder IterableCoder)
+           (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
-           (org.apache.beam.sdk.state ValueState TimerSpec Timer)))
+           (org.apache.beam.sdk.state ValueState Timer)))
 
 ;; --
 
@@ -280,3 +281,17 @@
 
 (defn kv->clj [^KV kv]
   (MapEntry/create (.getKey kv) (.getValue kv)))
+
+;; --
+
+(defn log-elem*
+  ([elem] (log/logp :info elem))
+  ([level elem] (log/logp level elem)))
+
+;; --
+
+(defn count-per-key
+  ([] (count-per-key "count-per-key"))
+  ([xf-name] (comp* xf-name
+               (Count/perKey)
+               #'kv->clj)))
