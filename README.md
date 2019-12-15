@@ -1,5 +1,6 @@
 # thurber
 
+(alpha release coming soon)
 
 A thin, muscular Clojure API for [Apache Beam](https://beam.apache.org/) and 
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/).
