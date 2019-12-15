@@ -19,7 +19,7 @@
 
 * unit test more demos
 
-* docs on ->kv, partial*, etc.
+* docs on ->kv, partial*, #'fn-var/DoFn (!!) etc.
 
 * benchmarks
 
