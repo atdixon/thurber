@@ -19,7 +19,7 @@
 
 (defn- create-pipeline []
   (let [pipeline (th/create-pipeline)
-        data (th/apply! pipeline (th/create* [1 2 3 4 5]))]
+        data (th/apply! pipeline (th/create [1 2 3 4 5]))]
     (th/apply!
       data
       (th/combine-globally #'sum-and-count-xf)

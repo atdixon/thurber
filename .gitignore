@@ -1,2 +1,4 @@
 target/
 .nrepl-port
+.lein-failures
+.lein-repl-history

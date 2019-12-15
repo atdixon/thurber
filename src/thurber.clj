@@ -235,7 +235,7 @@
 
 ;; --
 
-(defn ^PTransform create* [coll]
+(defn ^PTransform create [coll]
   (if (map? coll)
     (-> (Create/of ^Map coll) (.withCoder nippy))
     (-> (Create/of ^Iterable (seq coll)) (.withCoder nippy))))
