@@ -3,6 +3,8 @@
 * metrics
 * job name
 
+* CoGroupByKey
+
 * dataflow/gaming docs
     * lein with-profile +dev,+dataflow uberjar
     * lein with-profile +dev,+dataflow run -m game.user-score-opt/demo! \
