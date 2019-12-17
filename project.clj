@@ -1,10 +1,12 @@
-(defproject com.github.atdixon/thurber "0.1.0-alpha"
+(defproject com.github.atdixon/thurber "0.0.1-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
   :description "thurber: Apache Beam on Clojure"
   :url "https://github.com/atdixon/thurber"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
+
+  :deploy-repositories [["releases" {:url "https://repo.clojars.org" :creds :gpg}]]
 
   :java-source-paths ["src"]
   :javac-options ["-target" "1.8" "-source" "1.8"]

@@ -30,3 +30,7 @@
 * how extensively can proxy be used
 
 * https://beam.apache.org/documentation/sdks/java-extensions/
+
+* releases
+    * git tag -d 0.0.1-alpha # del local
+    * lein release :alpha
