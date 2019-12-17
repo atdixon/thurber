@@ -9,6 +9,7 @@
 * [Principles](#principles)
 * [Quickstart](#quickstart)
 * [Guide](#guide)
+    * [Transforms](#transforms)
     * [Coders](#coders)
 * [Demos](#demos)
     * [Word Count](#word-count)
@@ -76,6 +77,8 @@ to a `Pipeline` or [PCollection](https://beam.apache.org/releases/javadoc/curren
 
 `thurber/comp*` is how [composite transforms](https://beam.apache.org/documentation/programming-guide/#composite-transforms)
 are made. The result of `comp*` is a transform that can be used again within a subsequent call to `apply!` or `comp*`.
+
+#### Transforms
 
 Any [PTransform](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/PTransform.html) 
 instance can be provided to `apply!` and `comp*` but thurber supports other transform representations:
