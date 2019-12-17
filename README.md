@@ -1,10 +1,14 @@
 # thurber
 
-(alpha release coming soon)
+![thurber](img/thurber.png)
+
+[![ClojarsVersionRelease](https://img.shields.io/clojars/v/com.github.atdixon/thurber)](https://clojars.org/com.github.atdixon/thurber)
 
 [Apache Beam](https://beam.apache.org/) and 
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
 ~~steroids~~ Clojure.
+
+_This is alpha software. Bleeding-edge and all that. Buyer beware._
 
 * [Principles](#principles)
 * [Quickstart](#quickstart)
@@ -28,7 +32,7 @@
 * **No AOT**
 * **Bypassable API**
     * No API lock-in. Pipelines can be composed of Clojure/thurber and Java 
-      transforms. Don't like **thurber**? Incrementally refactor your pipeline
+      transforms. Don't like thurber? Incrementally refactor your pipeline
       back to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) works 
@@ -135,20 +139,27 @@ To execute a demo, start a REPL and evaluate `(demo!)` from within the respectiv
 
 The `word_count` package contains ports of Beam's
 [Word Count Examples](https://beam.apache.org/get-started/wordcount-example/)
-to Clojure/**thurber**.
+to Clojure/thurber.
 
 ### Mobile Gaming Example
 
 Beam's [Mobile Gaming Examples](https://beam.apache.org/get-started/mobile-gaming-example/)
-have been ported to Clojure using **thurber**.
+have been ported to Clojure using thurber.
 
 These are fully functional ports but require deployment to GCP Dataflow. (How-to 
 notes coming soon.)
 
 ## Make It Fast
 
-First make your pipeline work. Then make it fast. Streaming/big data implies hot code paths.
+First make your pipeline work. Then make it fast. 
+
+Streaming/big data implies hot code paths.
+
 Use Clojure [type hints](https://clojure.org/reference/java_interop#typehints) liberally.
+
+## References
+
+* https://write.as/aaron-d/clojure-data-streaming-and-dodging-static-types
 
 ## License
 Copyright © 2020 Aaron Dixon
