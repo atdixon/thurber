@@ -14,21 +14,22 @@ import static java.util.Collections.singletonList;
 
 public final class TerminalWindowFn extends WindowFn<Object, TerminalWindow> {
 
-    private final Var terminal_q;
-    private final Duration gap, grace;
+    private final Var delayBeforeTerminalFn;
+    private final Duration gap;
 
-    public TerminalWindowFn(Var terminal_q, Duration gap, Duration grace) {
-        this.terminal_q = terminal_q;
+    public TerminalWindowFn(Var delayBeforeTerminalFn, Duration gap) {
+        this.delayBeforeTerminalFn = delayBeforeTerminalFn;
         this.gap = gap;
-        this.grace = grace;
     }
 
     @Override
     public Collection<TerminalWindow> assignWindows(AssignContext c) throws Exception {
-        Boolean terminal = (Boolean) this.terminal_q.invoke(c.element());
+        Duration delay
+            = (Duration) this.delayBeforeTerminalFn.invoke(c.element());
+        boolean terminal = delay != null;
         return singletonList(
             new TerminalWindow(c.timestamp(),
-                terminal ? c.timestamp().plus(grace)
+                terminal ? c.timestamp().plus(delay)
                     : c.timestamp().plus(gap), terminal));
     }
 
@@ -55,7 +56,7 @@ public final class TerminalWindowFn extends WindowFn<Object, TerminalWindow> {
     private void readObject(java.io.ObjectInputStream stream)
         throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        Core.require_(this.terminal_q);
+        Core.require_(this.delayBeforeTerminalFn);
     }
 
 }

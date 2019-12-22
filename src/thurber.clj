@@ -5,7 +5,7 @@
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy]
             [clojure.tools.logging :as log])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext GroupByKey)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)

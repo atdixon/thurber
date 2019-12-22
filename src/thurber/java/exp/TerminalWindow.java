@@ -18,10 +18,14 @@ public class TerminalWindow extends IntervalWindow {
         return new TerminalWindow(
             new Instant(Math.min(start().getMillis(), other.start().getMillis())),
             new Instant(
-                this.terminal ? end().getMillis() :
-                    other.terminal ? other.end().getMillis()
-                        : Math.max(end().getMillis(), other.end().getMillis())),
+                this.terminal || other.terminal
+                    ? Math.min(end().getMillis(), other.end().getMillis())
+                    : Math.max(end().getMillis(), other.end().getMillis())),
             this.terminal || other.terminal);
+    }
+
+    @Override public String toString() {
+        return "{" + super.toString() + (terminal ? ",terminal" : "") + "}";
     }
 
     @Override public int hashCode() {

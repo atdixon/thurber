@@ -22,11 +22,10 @@
 (defn- ->tz* [elem]
   (DateTimeZone/forID ^String (:tz elem)))
 
-(defn- pick* [elem]
-  (log/infof "%s ~ [%s]" elem th/*element-window*)
+(defn- ->color [elem]
   (:color elem))
 
-(deftest test-count-words
+(deftest test-calendar-day-window
   (let [p (-> (TestPipeline/create)
             (.enableAbandonedNodeEnforcement true))
         output (th/apply! p
@@ -38,7 +37,7 @@
                    (.withCoder th/nippy))
                  (Window/into
                    (CalendarDayWindowFn. #'->tz*))
-                 #'pick*)]
+                 #'->color)]
     (-> output
       (PAssert/that)
       (.inWindow (IntervalWindow.
