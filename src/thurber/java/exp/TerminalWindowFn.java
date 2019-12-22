@@ -29,7 +29,8 @@ public final class TerminalWindowFn extends WindowFn<Object, TerminalWindow> {
         boolean terminal = delay != null;
         return singletonList(
             new TerminalWindow(c.timestamp(),
-                terminal ? c.timestamp().plus(delay)
+                // note: plus(1), as we never want to exclude own element with delay=0
+                terminal ? c.timestamp().plus(delay.plus(1))
                     : c.timestamp().plus(gap), terminal));
     }
 

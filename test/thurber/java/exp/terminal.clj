@@ -36,14 +36,15 @@
                    (TerminalWindowFn. #'->terminal-delay (Duration/millis 10)))
                  #'->color
                  (Group/globally)
-                 (Flatten/iterables))]
+                 (Flatten/iterables)
+                 #'peek*)]
     (-> output
       (PAssert/that)
       (.inWindow (TerminalWindow. (Instant. 0) (Instant. 19) false))
       (.containsInAnyOrder ["red" "blue"]))
     (-> output
       (PAssert/that)
-      (.inWindow (TerminalWindow. (Instant. 21) (Instant. 31) true))
+      (.inWindow (TerminalWindow. (Instant. 21) (Instant. 33) true))
       (.containsInAnyOrder ["green" "orange" "pink" "purple"]))
     (-> (.run p)
       (.waitUntilFinish))))
