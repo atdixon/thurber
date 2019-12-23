@@ -31,7 +31,7 @@ public final class TCoder extends CustomCoder<Object> {
     public void verifyDeterministic() {}
 
     public boolean consistentWithEquals() {
-        return false;
+        return true;
     }
 
     private void readObject(java.io.ObjectInputStream stream)

@@ -10,6 +10,8 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Collection;
 
 import static java.util.Collections.singleton;
@@ -25,7 +27,7 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
     }
 
     @Override public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
-        DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
+        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
 
         DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
         DateTime current = new DateTime(c.timestamp(), tz);

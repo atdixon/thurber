@@ -36,8 +36,7 @@
                    (TerminalWindowFn. #'->terminal-delay (Duration/millis 10)))
                  #'->color
                  (Group/globally)
-                 (Flatten/iterables)
-                 #'peek*)]
+                 (Flatten/iterables))]
     (-> output
       (PAssert/that)
       (.inWindow (TerminalWindow. (Instant. 0) (Instant. 19) false))
