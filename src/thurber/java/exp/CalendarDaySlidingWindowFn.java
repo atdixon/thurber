@@ -8,17 +8,15 @@ import org.apache.beam.sdk.transforms.windowing.IntervalWindow;
 import org.apache.beam.sdk.transforms.windowing.NonMergingWindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowMappingFn;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
+import org.joda.time.*;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, IntervalWindow> {
 
@@ -40,7 +38,7 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) {
-        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
+        @Nonnull DateTimeZone tz = checkNotNull((DateTimeZone) timezoneFn.invoke(c.element()));
 
         List<IntervalWindow> windows = new ArrayList<>((int) (size.getMillis() / ONE_DAY.getMillis()));
         long lastStart = lastStartFor(c.timestamp(), tz);
@@ -75,6 +73,7 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
      * Return the last start of a sliding window that contains the timestamp.
      */
     private long lastStartFor(Instant timestamp, DateTimeZone tz) {
+        // note: epoch at certain timezone is negative millis epoch (i.e., joda handles this correctly)
         DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
         DateTime current = new DateTime(timestamp, tz);
 

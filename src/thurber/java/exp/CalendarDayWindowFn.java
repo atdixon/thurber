@@ -11,9 +11,9 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singleton;
 
 public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWindow> {
@@ -26,8 +26,9 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
         this.timezoneFn = timezoneFn;
     }
 
-    @Override public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
-        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
+    @Override
+    public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
+        @Nonnull DateTimeZone tz = (DateTimeZone) checkNotNull(timezoneFn.invoke(c.element()));
 
         DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
         DateTime current = new DateTime(c.timestamp(), tz);
@@ -40,19 +41,23 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
         return singleton(new IntervalWindow(begin.toInstant(), end.toInstant()));
     }
 
-    @Override public boolean isCompatible(WindowFn<?, ?> other) {
+    @Override
+    public boolean isCompatible(WindowFn<?, ?> other) {
         return other instanceof CalendarDayWindowFn;
     }
 
-    @Override public Coder<IntervalWindow> windowCoder() {
+    @Override
+    public Coder<IntervalWindow> windowCoder() {
         return IntervalWindow.getCoder();
     }
 
-    @Override public WindowMappingFn<IntervalWindow> getDefaultWindowMappingFn() {
+    @Override
+    public WindowMappingFn<IntervalWindow> getDefaultWindowMappingFn() {
         throw new UnsupportedOperationException("no side input support yet");
     }
 
-    @Override public boolean assignsToOneWindow() {
+    @Override
+    public boolean assignsToOneWindow() {
         return true;
     }
 
