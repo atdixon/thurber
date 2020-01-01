@@ -64,7 +64,7 @@
     ^PipelineOptions options
     ^DoFn$ProcessContext context
     ^BoundedWindow window
-    args-array]
+    ^"[Ljava.lang.Object;" args-array]
    (apply** fn options context window nil nil args-array))
   ([fn
     ^PipelineOptions options
@@ -85,13 +85,18 @@
          (.output context rv))))))
 
 (defn apply-timer**
-  [timer-fn ^DoFn$OnTimerContext context ^ValueState state]
+  [timer-fn
+   ^DoFn$OnTimerContext context
+   ^ValueState state
+   ^Timer timer
+   ^"[Ljava.lang.Object;" timer-args-array]
   (binding [*value-state* state
+            *event-timer* timer
             *timer-context* context]
-    (let [rv (timer-fn)]
+    (let [rv (apply timer-fn timer-args-array)]
       (when (some? rv)
         (throw (RuntimeException.
-                 "for now, output from timer func must be imperative"))))))
+                "for now, output from timer func must be imperative"))))))
 
 ;; --
 
@@ -179,19 +184,19 @@
     (if (= c :th/inherit)
       (.getCoder prev) c)))
 
-(defn- ->pardo [xf params stateful? timer-fn]
+(defn- ->pardo [xf params timer-params stateful? timer-fn]
   (let [tags (into [] (filter #(instance? TupleTag %) params))
         views (into [] (filter #(instance? PCollectionView %)) params)]
     (cond-> (ParDo/of (if (or stateful? timer-fn)
-                        (TDoFn_Stateful. xf timer-fn (object-array params))
+                        (TDoFn_Stateful. xf timer-fn (object-array params) (object-array timer-params))
                         (TDoFn. xf (object-array params))))
       (not-empty tags)
       (.withOutputTags ^TupleTag (first tags)
-        (reduce (fn [^TupleTagList acc ^TupleTag tag]
-                  (.and acc tag)) (TupleTagList/empty) (rest tags)))
+                       (reduce (fn [^TupleTagList acc ^TupleTag tag]
+                                 (.and acc tag)) (TupleTagList/empty) (rest tags)))
       (not-empty views)
       (.withSideInputs
-        ^Iterable (into [] (filter #(instance? PCollectionView %)) params)))))
+       ^Iterable (into [] (filter #(instance? PCollectionView %)) params)))))
 
 (defn- set-coder! [pcoll-or-tuple coder]
   (cond
@@ -210,9 +215,9 @@
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
-                                   (select-keys (meta xf) [:th/name :th/coder :th/params :th/stateful]) override)]
-                 (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/stateful normal)
-                                           (:th/timer-fn normal)))))))
+                                   (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-params :th/stateful]) override)]
+                 (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/timer-params normal) (:th/stateful normal)
+                                                  (:th/timer-fn normal)))))))
 
 (defn ^PCollection apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
