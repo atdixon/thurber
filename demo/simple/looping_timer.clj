@@ -42,8 +42,7 @@
     (log/infof "Timer @ %s fired" ts)
     (when (.isBefore next-timer-time stop-timer-time)
       (.set th/*event-timer* next-timer-time))
-    (.output th/*timer-context*
-      (KV/of elem-key 0))))
+    (KV/of elem-key 0)))
 
 (defn- create-pipeline []
   (doto (th/create-pipeline)

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Collections;
 
 public class TProxy {
 
@@ -26,8 +25,8 @@ public class TProxy {
         }
 
         @Override public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-            Var.pushThreadBindings(PersistentArrayMap.create(
-                Collections.singletonMap((Var) Clojure.var("thurber", "*proxy-args*"), proxyArgs)));
+            Var.pushThreadBindings(new PersistentArrayMap(new Object[]{
+                Clojure.var("thurber", "*proxy-args*"), proxyArgs}));
             try {
                 return thisMethod.invoke(proxyVar.deref(), args);
             } finally {

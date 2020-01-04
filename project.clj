@@ -33,7 +33,9 @@
           [org.slf4j/slf4j-simple "1.7.29"]
           ;; -- test deps --
           [org.hamcrest/hamcrest-core "2.2"]
-          [org.hamcrest/hamcrest-library "2.2"]]
+          [org.hamcrest/hamcrest-library "2.2"]
+          ;; -- benchmarking --
+          [criterium "0.4.5"]]
          :plugins
          [[lein-pprint "1.2.0"]
           [lein-ancient "0.6.15"]

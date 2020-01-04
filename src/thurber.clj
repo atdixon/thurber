@@ -59,47 +59,6 @@
 
 ;; --
 
-(defn apply**
-  ([fn
-    ^PipelineOptions options
-    ^DoFn$ProcessContext context
-    ^BoundedWindow window
-    ^"[Ljava.lang.Object;" args-array]
-   (apply** fn options context window nil nil args-array))
-  ([fn
-    ^PipelineOptions options
-    ^DoFn$ProcessContext context
-    ^BoundedWindow window
-    ^ValueState state
-    ^Timer timer
-    args-array]
-   (binding [*pipeline-options* options
-             *process-context* context
-             *element-window* window
-             *value-state* state
-             *event-timer* timer]
-     (when-let [rv (apply fn (concat args-array [(.element context)]))]
-       (if (seq? rv)
-         (doseq [v rv]
-           (.output context v))
-         (.output context rv))))))
-
-(defn apply-timer**
-  [timer-fn
-   ^DoFn$OnTimerContext context
-   ^ValueState state
-   ^Timer timer
-   ^"[Ljava.lang.Object;" timer-args-array]
-  (binding [*value-state* state
-            *event-timer* timer
-            *timer-context* context]
-    (let [rv (apply timer-fn timer-args-array)]
-      (when (some? rv)
-        (throw (RuntimeException.
-                "for now, output from timer func must be imperative"))))))
-
-;; --
-
 (defn proxy-with-signature* [proxy-var sig & args]
   (TProxy/create proxy-var sig (into-array Object args)))
 

@@ -28,6 +28,15 @@ public class Core {
     static IFn merge_accumulators_ = Clojure.var("thurber", "merge-accumulators");
     static IFn extract_output_ = Clojure.var("thurber", "extract-output");
 
+    // -- dynamic --
+
+    static final Var PO = (Var) Clojure.var("thurber", "*pipeline-options*");
+    static final Var PC = (Var) Clojure.var("thurber", "*process-context*");
+    static final Var EW = (Var) Clojure.var("thurber", "*element-window*");
+    static final Var VS = (Var) Clojure.var("thurber", "*value-state*");
+    static final Var ET = (Var) Clojure.var("thurber", "*event-timer*");
+    static final Var TC = (Var) Clojure.var("thurber", "*timer-context*");
+
     public static synchronized void require_(Var var) {
         require.invoke(var.ns.name);
     }

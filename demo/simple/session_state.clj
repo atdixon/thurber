@@ -54,8 +54,8 @@
 
 (defn- special-timer* []
   (when-let [state (.read th/*value-state*)]
-    (.output th/*timer-context* (:buffer state))
-    (.clear th/*value-state*)))
+    (.clear th/*value-state*)
+    (:buffer state)))
 
 (defn- create-pipeline []
   (let [pipeline (th/create-pipeline)

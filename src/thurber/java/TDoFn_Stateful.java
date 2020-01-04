@@ -2,7 +2,13 @@ package thurber.java;
 
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
-import org.apache.beam.sdk.state.*;
+import org.apache.beam.sdk.state.StateSpec;
+import org.apache.beam.sdk.state.StateSpecs;
+import org.apache.beam.sdk.state.TimeDomain;
+import org.apache.beam.sdk.state.Timer;
+import org.apache.beam.sdk.state.TimerSpec;
+import org.apache.beam.sdk.state.TimerSpecs;
+import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 
@@ -37,14 +43,14 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window,
-                               @TimerId("timer") Timer timer, @StateId("state") ValueState<Object> state) {
-        Core.apply__.invoke(fn, options, context, window, state, timer, args);
+                               @StateId("state") ValueState<Object> state, @TimerId("timer") Timer timer) {
+        TDoFn.execute(fn, args, options, context, window, state, timer, null);
     }
 
     @OnTimer("timer")
-    public void onTimer(OnTimerContext context, @TimerId("timer") Timer timer,
+    public void onTimer(PipelineOptions options, OnTimerContext context, @TimerId("timer") Timer timer,
                         @StateId("state") ValueState<Object> state) {
-        Core.apply_timer__.invoke(timerFn, context, state, timer, timerArgs);
+        TDoFn.execute(timerFn, timerArgs, options, null, null, state, timer, context);
     }
 
 }
