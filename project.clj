@@ -45,7 +45,8 @@
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
            [[org.clojure/core.async "0.6.532"]
-            [org.apache.kafka/kafka-clients "2.4.0"]]}
+            [org.apache.kafka/kafka-clients "2.4.0"]
+            [org.apache.beam/beam-sdks-java-io-kafka "2.16.0"]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]
                [org.apache.beam/beam-runners-google-cloud-dataflow-java "2.16.0"]]}})
