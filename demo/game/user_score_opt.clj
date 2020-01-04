@@ -1,6 +1,5 @@
 (ns game.user-score-opt
   (:require [thurber :as th]
-            [clojure.string :as str]
             [clojure.tools.logging :as log]
             [deercreeklabs.lancaster :as lan])
   (:import (org.apache.beam.sdk.io TextIO)
@@ -8,7 +7,7 @@
            (org.apache.beam.sdk.transforms Sum)
            (thurber.java TCoder)
            (org.apache.beam.sdk.coders CustomCoder KvCoder StringUtf8Coder VarIntCoder)
-           (java.io OutputStream InputStream DataOutputStream)
+           (java.io OutputStream InputStream)
            (java.nio ByteBuffer)))
 
 (defrecord GameActionInfo [user team score timestamp])
