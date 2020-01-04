@@ -113,7 +113,7 @@
     {:th/name fn-var-or-name
      :th/xform (first args)
      :th/params (rest args)}
-    {:th/name (format "partial*-%s" (var->name fn-var-or-name))
+    {:th/name (format "partial*:%s" (var->name fn-var-or-name))
      :th/xform fn-var-or-name
      :th/params args}))
 
@@ -126,7 +126,7 @@
     {:th/name pred-var-or-name
      :th/xform #'filter-impl
      :th/params args}
-    {:th/name (format "filter*-%s" (var->name pred-var-or-name))
+    {:th/name (format "filter*:%s" (var->name pred-var-or-name))
      :th/xform #'filter-impl
      :th/params (conj args pred-var-or-name)}))
 
