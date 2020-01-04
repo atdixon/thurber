@@ -24,22 +24,25 @@
    [org.slf4j/slf4j-api "1.7.29"]]
 
   :profiles
-  {:dev {:source-paths ["demo"]
-         :dependencies
-         [;; -- demo deps --
-          [deercreeklabs/lancaster "0.8.6"]
-          [org.apache.beam/beam-runners-direct-java "2.16.0"]
-          [org.apache.beam/beam-examples-java "2.16.0"]
-          [org.slf4j/slf4j-simple "1.7.29"]
-          ;; -- test deps --
-          [org.hamcrest/hamcrest-core "2.2"]
-          [org.hamcrest/hamcrest-library "2.2"]
-          ;; -- benchmarking --
-          [criterium "0.4.5"]]
-         :plugins
-         [[lein-pprint "1.2.0"]
-          [lein-ancient "0.6.15"]
-          [lein-codox "0.10.7"]]}
+  {:demo {:source-paths ["demo"]
+          :dependencies
+          [;; -- demo deps --
+           [deercreeklabs/lancaster "0.8.6"]
+           [org.apache.beam/beam-runners-direct-java "2.16.0"]
+           [org.apache.beam/beam-examples-java "2.16.0"]
+           [org.slf4j/slf4j-simple "1.7.29"]]}
+   :dev [:demo
+         {:source-paths ["demo"]
+          :dependencies
+          [;; -- test deps --
+           [org.hamcrest/hamcrest-core "2.2"]
+           [org.hamcrest/hamcrest-library "2.2"]
+           ;; -- benchmarking --
+           [criterium "0.4.5"]]
+          :plugins
+          [[lein-pprint "1.2.0"]
+           [lein-ancient "0.6.15"]
+           [lein-codox "0.10.7"]]}]
    :extra {:dependencies
            [[org.clojure/core.async "0.6.532"]
             [org.apache.kafka/kafka-clients "2.4.0"]]}
