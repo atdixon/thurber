@@ -17,11 +17,11 @@
               (.plus now (Duration/standardMinutes 3))))
 
 (defn- sink* [elem]
-  (log/infof "Value is %s timestamp is %s" elem (.timestamp th/*process-context*)))
+  (log/infof "Value is %s timestamp is %s" elem (.timestamp (th/*process-context*))))
 
 (defn- looping-stateful-fn [^KV kv-elem]
-  (let [{:keys [elem-key current-timer-val :as curr-state]} (.read th/*value-state*)
-        next-timer-val (-> (.timestamp th/*process-context*)
+  (let [{:keys [elem-key current-timer-val :as curr-state]} (.read (th/*value-state*))
+        next-timer-val (-> (.timestamp (th/*process-context*))
                          (.plus (Duration/standardMinutes 1)))
         next-state (cond-> curr-state
                      (not elem-key) (assoc :elem-key (.getKey kv-elem))
@@ -29,19 +29,19 @@
                        (> current-timer-val (.getMillis next-timer-val)))
                      (assoc :current-timer-val (.getMillis next-timer-val)))]
     (when (not= current-timer-val next-timer-val)
-      (.set th/*event-timer* next-timer-val))
+      (.set (th/*event-timer*) next-timer-val))
     (when (not= curr-state next-state)
-      (.write th/*value-state* next-state))
+      (.write (th/*value-state*) next-state))
     kv-elem))
 
 (defn- looping-stateful-on-timer-fn [^Instant stop-timer-time]
-  (let [ts (.timestamp th/*timer-context*)
-        elem-key (:elem-key (.read th/*value-state*))
-        next-timer-time (-> (.timestamp th/*timer-context*)
+  (let [ts (.timestamp (th/*timer-context*))
+        elem-key (:elem-key (.read (th/*value-state*)))
+        next-timer-time (-> (.timestamp (th/*timer-context*))
                           (.plus (Duration/standardMinutes 1)))]
     (log/infof "Timer @ %s fired" ts)
     (when (.isBefore next-timer-time stop-timer-time)
-      (.set th/*event-timer* next-timer-time))
+      (.set (th/*event-timer*) next-timer-time))
     (KV/of elem-key 0)))
 
 (defn- create-pipeline []

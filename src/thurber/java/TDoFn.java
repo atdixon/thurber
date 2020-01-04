@@ -1,5 +1,6 @@
 package thurber.java;
 
+import clojure.lang.APersistentMap;
 import clojure.lang.ISeq;
 import clojure.lang.PersistentArrayMap;
 import clojure.lang.RT;
@@ -39,6 +40,10 @@ public final class TDoFn extends DoFn<Object, Object> {
 
     // --
 
+    @SuppressWarnings("unchecked")
+    private static final ThreadLocal<APersistentMap> context
+        = (ThreadLocal<APersistentMap>) Core.context_.deref();
+
     static void execute(Var fn, Object[] args,
                         PipelineOptions options,
                         @Nullable ProcessContext processContext,
@@ -46,9 +51,13 @@ public final class TDoFn extends DoFn<Object, Object> {
                         @Nullable ValueState<Object> state,
                         @Nullable Timer timer,
                         @Nullable OnTimerContext timerContext) {
-        Var.pushThreadBindings(new PersistentArrayMap(new Object[]{
-            Core.PO, options, Core.PC, processContext, Core.EW, window, Core.VS, state,
-            Core.ET, timer, Core.TC, timerContext}));
+        context.set(new PersistentArrayMap(new Object[]{
+            Core.PO, options,
+            Core.PC, processContext,
+            Core.EW, window,
+            Core.VS, state,
+            Core.ET, timer,
+            Core.TC, timerContext}));
         try {
             @Nullable final Object rv;
             if (processContext == null) {
@@ -76,7 +85,7 @@ public final class TDoFn extends DoFn<Object, Object> {
                 }
             }
         } finally {
-            Var.popThreadBindings();
+            context.set(null);
         }
     }
 

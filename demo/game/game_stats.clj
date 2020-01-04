@@ -17,7 +17,7 @@
 
 (defn- filter-user-scores [global-mean-score ^KV user-score]
   (let [score ^Integer (.getValue user-score)
-        gmc ^Double (.sideInput th/*process-context* global-mean-score)]
+        gmc ^Double (.sideInput (th/*process-context*) global-mean-score)]
     (> score (* gmc score-weight))))
 
 (defn- ->spammy-users [^PCollection user-scores]

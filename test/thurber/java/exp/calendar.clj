@@ -8,8 +8,6 @@
            (thurber.java.exp CalendarDayWindowFn CalendarDaySlidingWindowFn)
            (org.joda.time DateTimeZone DateTime Instant)
            (org.apache.beam.sdk.values TimestampedValue KV)
-           (org.apache.beam.sdk.schemas.transforms Group)
-           (java.util ArrayList)
            (org.apache.beam.sdk.coders IterableCoder)))
 
 (defn- ^Instant dt->instant*
@@ -37,7 +35,7 @@
   (:key elem))
 
 (defn- peek* [elem]
-  (log/warnf "%s ~ [%s]" elem th/*element-window*) elem)
+  (log/warnf "%s ~ [%s]" elem (th/*element-window*)) elem)
 
 (def ^:private simplify-output-xf
   (th/comp* "simplify-ouptut-xf"

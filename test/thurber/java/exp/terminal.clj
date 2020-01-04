@@ -3,7 +3,7 @@
             [thurber :as th]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.testing TestPipeline PAssert)
-           (org.apache.beam.sdk.transforms Create Values Flatten)
+           (org.apache.beam.sdk.transforms Create Flatten)
            (org.apache.beam.sdk.values TimestampedValue)
            (org.apache.beam.sdk.transforms.windowing Window)
            (thurber.java.exp TerminalWindowFn TerminalWindow)
@@ -17,7 +17,7 @@
   (:color elem))
 
 (defn- peek* [elem]
-  (log/warnf "%s ~ [%s]" elem th/*element-window*) elem)
+  (log/warnf "%s ~ [%s]" elem (th/*element-window*)) elem)
 
 (deftest test-terminal-window
   (let [p (-> (TestPipeline/create)
@@ -35,15 +35,17 @@
                  (Window/into
                    (TerminalWindowFn. #'->terminal-delay (Duration/millis 10)))
                  #'->color
+                 {:th/xform #'peek* :th/coder :th/inherit :th/name "hum"}
                  (Group/globally)
-                 (Flatten/iterables))]
+                 (Flatten/iterables)
+                 {:th/xform #'peek* :th/coder :th/inherit})]
     (-> output
       (PAssert/that)
       (.inWindow (TerminalWindow. (Instant. 0) (Instant. 19) false))
       (.containsInAnyOrder ["red" "blue"]))
     (-> output
       (PAssert/that)
-      (.inWindow (TerminalWindow. (Instant. 21) (Instant. 33) true))
+      (.inWindow (TerminalWindow. (Instant. 21) (Instant. 32) true))
       (.containsInAnyOrder ["green" "orange" "pink" "purple"]))
     (-> (.run p)
       (.waitUntilFinish))))

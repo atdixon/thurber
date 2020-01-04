@@ -48,14 +48,16 @@
 
 ;; --
 
-(def ^:dynamic ^PipelineOptions *pipeline-options* nil)
-(def ^:dynamic ^DoFn$ProcessContext *process-context* nil)
-(def ^:dynamic ^BoundedWindow *element-window* nil)
-(def ^:dynamic ^ValueState *value-state* nil)
-(def ^:dynamic ^Timer *event-timer* nil)
-(def ^:dynamic ^DoFn$OnTimerContext *timer-context* nil)
+(def ^:private ^ThreadLocal tl-context (ThreadLocal.))
+(def ^:private ^ThreadLocal tl-proxy-args (ThreadLocal.))
 
-(def ^:dynamic *proxy-args* nil)
+(defn ^PipelineOptions *pipeline-options* [] (:pipeline-options (.get tl-context)))
+(defn ^DoFn$ProcessContext *process-context* [] (:process-context (.get tl-context)))
+(defn ^BoundedWindow *element-window* [] (:element-window (.get tl-context)))
+(defn ^ValueState *value-state* [] (:value-state (.get tl-context)))
+(defn ^Timer *event-timer* [] (:event-timer (.get tl-context)))
+(defn ^DoFn$OnTimerContext *timer-context* [] (:timer-context (.get tl-context)))
+(defn ^"[Ljava.lang.Object;" *proxy-args* [] (.get tl-proxy-args))
 
 ;; --
 

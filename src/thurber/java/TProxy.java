@@ -1,7 +1,5 @@
 package thurber.java;
 
-import clojure.java.api.Clojure;
-import clojure.lang.PersistentArrayMap;
 import clojure.lang.Var;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
@@ -14,6 +12,9 @@ import java.util.Arrays;
 
 public class TProxy {
 
+    @SuppressWarnings("unchecked")
+    static final ThreadLocal<Object[]> PA = (ThreadLocal<Object[]>) Core.proxy_args_.deref();
+
     /** Serializable MethodHandler. */
     private static final class MethodHandlerImpl implements MethodHandler, Serializable {
         private final Var proxyVar;
@@ -25,12 +26,11 @@ public class TProxy {
         }
 
         @Override public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
-            Var.pushThreadBindings(new PersistentArrayMap(new Object[]{
-                Clojure.var("thurber", "*proxy-args*"), proxyArgs}));
+            PA.set(proxyArgs);
             try {
                 return thisMethod.invoke(proxyVar.deref(), args);
             } finally {
-                Var.popThreadBindings();
+                PA.set(null);
             }
         }
 

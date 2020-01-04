@@ -21,11 +21,11 @@
     ;; to Beam directly. This is useful in this case for emitting with an
     ;; explicit timestamp. Note that by returning nil/void from our DoFn function,
     ;; Thurber will not emit any elements on our behalf.
-    (.outputWithTimestamp th/*process-context* sentence random-timestamp)))
+    (.outputWithTimestamp (th/*process-context*) sentence random-timestamp)))
 
 (defn- sink* [elem]
   ;; We can access an element's window from within a DoFn.
-  (log/infof "%s in %s" elem th/*element-window*))
+  (log/infof "%s in %s" elem (th/*element-window*)))
 
 (defn- create-pipeline [opts]
   (let [pipeline (th/create-pipeline opts)

@@ -10,8 +10,8 @@
 
 (defn- fan* [^TupleTag even-tag ^TupleTag odd-tag elem]
   (if (even? elem)
-    (.output th/*process-context* even-tag {:value elem})
-    (.output th/*process-context* odd-tag {:value elem})))
+    (.output (th/*process-context*) even-tag {:value elem})
+    (.output (th/*process-context*) odd-tag {:value elem})))
 
 (defn- create-pipeline []
   (let [pipeline (th/create-pipeline)

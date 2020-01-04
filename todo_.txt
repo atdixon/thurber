@@ -20,8 +20,16 @@
 
 * inline comps
 * fujion
+* instead of dynamic thread bindings
+    - perhaps:
+        (defn doof [& {:as params}] (:process-context params))
+        (defn doof [& {:keys [process-context]}] ...process-context...)
+    - try and benchmark via user_score_opt
+        then compare to user_score... was pushThreadBindings the $$$ part?
 
 * unit test more demos
+
+* templates support
 
 * docs on ->kv, partial*, #'fn-var/DoFn (!!), coders, etc.
 
