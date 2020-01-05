@@ -2,7 +2,7 @@
 
 ![thurber](img/thurber.png)
 
-[![ClojarsVersionRelease](https://img.shields.io/clojars/v/com.github.atdixon/thurber)](https://clojars.org/com.github.atdixon/thurber)
+[![Clojars Project](https://img.shields.io/clojars/v/com.github.atdixon/thurber.svg)](https://clojars.org/com.github.atdixon/thurber)
 
 [Apache Beam](https://beam.apache.org/) and 
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
@@ -35,8 +35,8 @@ _This is alpha software. Bleeding-edge and all that. Buyer beware._
       transforms. Don't like thurber? Incrementally refactor your pipeline
       back to Java.
 * **Not Afraid of Java Interop**
-    * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) works 
-      cleanly with Beam, embrace it.
+    * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
+      is performant and works cleanly with Beam, embrace it.
 
 ## Quickstart
 
