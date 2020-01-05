@@ -13,7 +13,6 @@ import org.joda.time.Days;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singleton;
 
 public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWindow> {
@@ -28,7 +27,7 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
-        @Nonnull DateTimeZone tz = (DateTimeZone) checkNotNull(timezoneFn.invoke(c.element()));
+        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
 
         DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
         DateTime current = new DateTime(c.timestamp(), tz);
