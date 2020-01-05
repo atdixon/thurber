@@ -27,7 +27,7 @@
 
 (defn- format-row [[k v]]
   (format "team: %s, total_score: %d, window_start: %s" k v
-    (->> ^IntervalWindow (th/*element-window*) (.start) (f/unparse dt-formatter))))
+    (->> ^IntervalWindow (th/*element-window) (.start) (f/unparse dt-formatter))))
 
 (defn- filename-prefix-for-window [^ResourceId prefix ^IntervalWindow window]
   (format "%s-%s-%s" (if (.isDirectory prefix) "" (.getFilename prefix))
@@ -37,7 +37,7 @@
   (proxy [FileBasedSink$FilenamePolicy] []
     (windowedFilename [shard-number num-shards ^BoundedWindow window
                        ^PaneInfo pane-info ^FileBasedSink$OutputFileHints output-file-hints]
-      (let [[prefix] ^ResourceId (th/*proxy-args*)
+      (let [[prefix] ^ResourceId (th/*proxy-args)
             filename (format "%s-%s-of-%s%s" (filename-prefix-for-window prefix window)
                        shard-number num-shards (.getSuggestedFilenameSuffix output-file-hints))]
         (-> prefix (.getCurrentDirectory)

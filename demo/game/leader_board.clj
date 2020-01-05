@@ -59,12 +59,12 @@
     (.set "team" k)
     (.set "total_score" v)
     (.set "window_start"
-      (->> ^IntervalWindow (th/*element-window*) (.start)
+      (->> ^IntervalWindow (th/*element-window) (.start)
         (f/unparse game.hourly-team-score/dt-formatter)))
     (.set "processing_time"
       (f/unparse game.hourly-team-score/dt-formatter (t/now)))
     (.set "timing"
-      (-> (th/*process-context*) (.pane) (.getTiming) str))))
+      (-> (th/*process-context) (.pane) (.getTiming) str))))
 
 ;; --
 

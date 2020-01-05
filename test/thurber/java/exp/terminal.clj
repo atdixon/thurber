@@ -17,7 +17,7 @@
   (:color elem))
 
 (defn- peek* [elem]
-  (log/warnf "%s ~ [%s]" elem (th/*element-window*)) elem)
+  (log/warnf "%s ~ [%s]" elem (th/*element-window)) elem)
 
 (deftest test-terminal-window
   (let [p (-> (TestPipeline/create)

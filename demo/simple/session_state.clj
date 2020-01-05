@@ -8,7 +8,7 @@
            (org.apache.beam.sdk.values KV)))
 
 (defn- sink* [elem]
-  (log/infof "%s @ %s [%s]" elem (.timestamp (th/*process-context*)) (th/*element-window*)))
+  (log/infof "%s @ %s [%s]" elem (.timestamp (th/*process-context)) (th/*element-window)))
 
 (defn- custom-source []
   (flatten
@@ -33,28 +33,28 @@
 
 (defn- special* [^KV kv]
   (let [elem (.getValue kv)
-        state (or (.read (th/*value-state*)) {:buffer []
+        state (or (.read (th/*value-state)) {:buffer []
                                             :stop-ts nil})
         state' (-> state
                  (update :buffer conj elem)
                  (update :stop-ts #(or %
                                      (when (= (:type elem) :stop)
-                                       (.timestamp (th/*process-context*))))))]
+                                       (.timestamp (th/*process-context))))))]
     ;; Note: to fully support grace and gap we would have to split our buffer and keep track of
     ;;       our own windows and on timer then flush and clear those that are before the timer
     ;;       timestamp (ie watermark).
-    (.write (th/*value-state*) state')
+    (.write (th/*value-state) state')
     (if-let [stop-ts ^Instant (:stop-ts state')]
-      (.set (th/*event-timer*)
+      (.set (th/*event-timer)
         (-> stop-ts
           (.plus (Duration/standardMinutes grace-minutes))))
-      (.set (th/*event-timer*)
-        (-> (.timestamp (th/*process-context*))
+      (.set (th/*event-timer)
+        (-> (.timestamp (th/*process-context))
           (.plus (Duration/standardMinutes gap-minutes)))))))
 
 (defn- special-timer* []
-  (when-let [state (.read (th/*value-state*))]
-    (.clear (th/*value-state*))
+  (when-let [state (.read (th/*value-state))]
+    (.clear (th/*value-state))
     (:buffer state)))
 
 (defn- create-pipeline []

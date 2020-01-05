@@ -9,7 +9,7 @@
   (log/info elem))
 
 (defn- below-mean? [mean-view elem]
-  (let [mean (.sideInput (th/*process-context*) mean-view)]
+  (let [mean (.sideInput (th/*process-context) mean-view)]
     (< elem mean)))
 
 (defn- create-pipeline []

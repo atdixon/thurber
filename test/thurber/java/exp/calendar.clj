@@ -35,7 +35,7 @@
   (:key elem))
 
 (defn- peek* [elem]
-  (log/warnf "%s ~ [%s]" elem (th/*element-window*)) elem)
+  (log/warnf "%s ~ [%s]" elem (th/*element-window)) elem)
 
 (def ^:private simplify-output-xf
   (th/comp* "simplify-ouptut-xf"
