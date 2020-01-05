@@ -5,7 +5,18 @@ import org.joda.time.Instant;
 
 import java.util.Objects;
 
-public class TerminalWindow extends IntervalWindow {
+/**
+ * An {@link IntervalWindow} with an extra bit to indicate whether it is
+ * <code>terminal</code> or not.
+ * <p>
+ * This class supports window merging via its {@link #span(TerminalWindow)}} method;
+ * terminal windows refuse to merge/span beyond their {@link IntervalWindow#end()}.
+ * In this sense <code>terminal</code> windows dictate when the final merged window
+ * will close.
+ *
+ * @see TerminalWindowMerge
+ */
+public final class TerminalWindow extends IntervalWindow {
 
     final Boolean terminal;
 
@@ -26,15 +37,18 @@ public class TerminalWindow extends IntervalWindow {
             this.terminal || other.terminal);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
         return "{" + super.toString() + (terminal ? ",terminal" : "") + "}";
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return Objects.hash(super.hashCode(), terminal);
     }
 
-    @Override public boolean equals(Object obj) {
+    @Override
+    public boolean equals(Object obj) {
         if (!(obj instanceof TerminalWindow))
             return false;
         TerminalWindow other = (TerminalWindow) obj;

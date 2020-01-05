@@ -25,9 +25,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TerminalWindowMerge {
+/**
+ * Our package-private merging algorithm for {@link TerminalWindowFn} based on Beam's out-of-the-box
+ * {@link org.apache.beam.sdk.transforms.windowing.Sessions}' <code>MergeOverlappingIntervalWindows</code>
+ * but modified to support data-driven windows that have gone terminal.
+ *
+ * @see TerminalWindow
+ * @see TerminalWindowFn
+ */
+final class TerminalWindowMerge {
 
-    public static void mergeWindows(WindowFn<?, TerminalWindow>.MergeContext c) throws Exception {
+    static void mergeWindows(WindowFn<?, TerminalWindow>.MergeContext c) throws Exception {
         final List<TerminalWindow> sortedWindows
             = new ArrayList<>(c.windows());
         Collections.sort(sortedWindows);
@@ -43,6 +51,14 @@ public class TerminalWindowMerge {
             }
         }
         merges.add(current);
+
+        // Note: we assume that Beam window merging is performed/requested before the runner moves
+        //       the watermark forward in a way that would exceed the end of any in-flight, as yet
+        //       unmerged window. With this assumption along with our eager merging algorithm, we
+        //       can prove that we will never produce a resultant merged window whose end precedes
+        //       the watermark. (Doing so would be illegal as TimestampCombiner/END_OF_WINDOW would
+        //       then be forced to regress the watermark, which is illegal.)
+
         for (MergeCandidate merge : merges) {
             merge.apply(c);
         }
@@ -68,6 +84,8 @@ public class TerminalWindowMerge {
         }
 
         public void add(TerminalWindow window) {
+            // Note: the significant merging logic is handled by {@link TerminalWindow#span}
+            // which respects terminal window semantics.
             union = union == null ? window : union.span(window);
             parts.add(window);
         }

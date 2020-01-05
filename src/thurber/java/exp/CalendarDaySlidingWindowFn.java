@@ -8,19 +8,36 @@ import org.apache.beam.sdk.transforms.windowing.IntervalWindow;
 import org.apache.beam.sdk.transforms.windowing.NonMergingWindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowMappingFn;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.Days;
-import org.joda.time.Duration;
-import org.joda.time.Instant;
+import org.joda.time.*;
+import thurber.java.Core;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+/**
+ * A data-driven variant of Beam's out-of-the-box {@link org.apache.beam.sdk.transforms.windowing.SlidingWindows}.
+ * <p>
+ * A Clojure function ({@link Var}) is provided to the constructor; this function accepts
+ * the processing element and returns a non-null {@link DateTimeZone} indicating the timezone
+ * of the element.
+ * <p>
+ * The element is placed in multiple, never-merging sliding windows that span whole days in
+ * the element's given timezone. The size of the sliding windows is specified in days at
+ * construction time.
+ *
+ * @see org.apache.beam.sdk.transforms.windowing.SlidingWindows
+ */
 public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, IntervalWindow> {
+
+    public static CalendarDaySlidingWindowFn forSizeInDaysAndTimezoneFn(int days, Var timezoneFn) {
+        return new CalendarDaySlidingWindowFn(days, timezoneFn);
+    }
 
     private static final DateTime DEFAULT_START_DATE = new DateTime(0, DateTimeZone.UTC);
     private static final Duration ONE_DAY = Duration.standardDays(1);
@@ -28,7 +45,7 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
     private final Duration size;
     private final Var timezoneFn;
 
-    public CalendarDaySlidingWindowFn(int days, Var timezoneFn) {
+    private CalendarDaySlidingWindowFn(int days, Var timezoneFn) {
         this.size = Duration.standardDays(days);
         this.timezoneFn = timezoneFn;
     }
@@ -40,10 +57,10 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) {
-        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
+        @Nonnull final DateTimeZone tz = checkNotNull((DateTimeZone) timezoneFn.invoke(c.element()));
 
-        List<IntervalWindow> windows = new ArrayList<>((int) (size.getMillis() / ONE_DAY.getMillis()));
-        long lastStart = lastStartFor(c.timestamp(), tz);
+        final List<IntervalWindow> windows = new ArrayList<>((int) (size.getMillis() / ONE_DAY.getMillis()));
+        final long lastStart = lastStartFor(c.timestamp(), tz);
         for (long start = lastStart;
              start > c.timestamp().minus(size).getMillis();
              start -= ONE_DAY.getMillis()) {
@@ -93,14 +110,31 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
     @Experimental(Kind.OUTPUT_TIME)
     @Override
     public Instant getOutputTime(Instant inputTimestamp, IntervalWindow window) {
-        Instant startOfLastSegment = window.maxTimestamp().minus(ONE_DAY);
+        final Instant startOfLastSegment = window.maxTimestamp().minus(ONE_DAY);
         return startOfLastSegment.isBefore(inputTimestamp)
             ? inputTimestamp
             : startOfLastSegment.plus(1);
     }
 
     @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof CalendarDaySlidingWindowFn)) {
+            return false;
+        }
+        CalendarDaySlidingWindowFn other = (CalendarDaySlidingWindowFn) object;
+        return size == other.size
+            && timezoneFn.equals(other.timezoneFn);
+    }
+
+    @Override
     public int hashCode() {
         return Objects.hash(size, timezoneFn);
     }
+
+    private void readObject(java.io.ObjectInputStream stream)
+        throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        Core.require_(this.timezoneFn);
+    }
+
 }

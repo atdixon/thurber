@@ -33,7 +33,7 @@
                       (TimestampedValue/of {:color "purple" :terminal-delay 2} (Instant. 30))])
                    (.withCoder th/nippy))
                  (Window/into
-                   (TerminalWindowFn. #'->terminal-delay (Duration/millis 10)))
+                   (TerminalWindowFn/withFuseAndGapDuration #'->terminal-delay (Duration/millis 10)))
                  #'->color
                  {:th/xform #'peek* :th/coder :th/inherit :th/name "hum"}
                  (Group/globally)

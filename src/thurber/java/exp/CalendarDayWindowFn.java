@@ -9,33 +9,56 @@ import org.apache.beam.sdk.transforms.windowing.WindowMappingFn;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
+import thurber.java.Core;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.Collection;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singleton;
 
+/**
+ * A data-driven variant of Beam's out-of-the-box
+ * {@link org.apache.beam.sdk.transforms.windowing.CalendarWindows.DaysWindows} {@link WindowFn}.
+ * <p>
+ * A Clojure function ({@link Var}) is provided to the constructor; this function accepts
+ * the processing element and returns a non-null {@link DateTimeZone} indicating the timezone
+ * of the element.
+ * <p>
+ * The timezone is used in conjunction with the element's {@link AssignContext#timestamp()} to place
+ * the element in a window corresponding precisely corresponding to the whole day containing the
+ * timestamp in the timezone.
+ * <p>
+ * Elements are placed in a unique, single window and windows never are merged.
+ *
+ * @see org.apache.beam.sdk.transforms.windowing.Sessions
+ */
 public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWindow> {
+
+    public static CalendarDayWindowFn forTimezoneFn(Var timezoneFn) {
+        return new CalendarDayWindowFn(timezoneFn);
+    }
 
     private static final DateTime DEFAULT_START_DATE = new DateTime(0, DateTimeZone.UTC);
 
     private final Var timezoneFn;
 
-    public CalendarDayWindowFn(Var timezoneFn) {
+    private CalendarDayWindowFn(Var timezoneFn) {
         this.timezoneFn = timezoneFn;
     }
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
-        @Nonnull DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
+        @Nonnull final DateTimeZone tz = (DateTimeZone) checkNotNull(timezoneFn.invoke(c.element()));
 
-        DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
-        DateTime current = new DateTime(c.timestamp(), tz);
+        final DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
+        final DateTime current = new DateTime(c.timestamp(), tz);
 
         int dayOffset = Days.daysBetween(epoch, current).getDays();
 
-        DateTime begin = epoch.plusDays(dayOffset);
-        DateTime end = begin.plusDays(1);
+        final DateTime begin = epoch.plusDays(dayOffset);
+        final DateTime end = begin.plusDays(1);
 
         return singleton(new IntervalWindow(begin.toInstant(), end.toInstant()));
     }
@@ -58,6 +81,26 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
     @Override
     public boolean assignsToOneWindow() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (!(object instanceof CalendarDayWindowFn)) {
+            return false;
+        }
+        CalendarDayWindowFn other = (CalendarDayWindowFn) object;
+        return timezoneFn.equals(other.timezoneFn);
+    }
+
+    @Override
+    public int hashCode() {
+        return timezoneFn.hashCode();
+    }
+
+    private void readObject(java.io.ObjectInputStream stream)
+        throws IOException, ClassNotFoundException {
+        stream.defaultReadObject();
+        Core.require_(this.timezoneFn);
     }
 
 }

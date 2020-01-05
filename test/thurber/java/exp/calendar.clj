@@ -57,7 +57,7 @@
                  {:th/name "cal-day-window*"
                   :th/xform
                   (Window/into
-                    (CalendarDayWindowFn. #'->tz*))}
+                    (CalendarDayWindowFn/forTimezoneFn #'->tz*))}
                  (th/partial* #'th/->kv #'->key)
                  (GroupByKey/create))
         output-simple (th/apply! output simplify-output-xf)
@@ -65,7 +65,7 @@
                         {:th/name "sliding-window*"
                          :th/xform
                          (Window/into
-                           (CalendarDaySlidingWindowFn. (int 30) #'kvi->tz*))}
+                           (CalendarDaySlidingWindowFn/forSizeInDaysAndTimezoneFn (int 30) #'kvi->tz*))}
                         {:th/name "simplify-output-xf/sliding"
                          :th/xform simplify-output-xf}
                         #'peek*)]

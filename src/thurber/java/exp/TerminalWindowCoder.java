@@ -16,23 +16,30 @@ public final class TerminalWindowCoder extends Coder<TerminalWindow> {
     private static final Coder<Instant> instantCoder = NullableCoder.of(InstantCoder.of());
     private static final Coder<Boolean> booleanCoder = BooleanCoder.of();
 
-    @Override public void encode(TerminalWindow value, OutputStream outStream) throws CoderException, IOException {
+    @Override
+    public void encode(TerminalWindow value, OutputStream outStream) throws CoderException, IOException {
         instantCoder.encode(value.start(), outStream);
         instantCoder.encode(value.end(), outStream);
         booleanCoder.encode(value.terminal, outStream);
     }
 
-    @Override public TerminalWindow decode(InputStream inStream) throws CoderException, IOException {
+    @Override
+    public TerminalWindow decode(InputStream inStream) throws CoderException, IOException {
         Instant start = instantCoder.decode(inStream);
         Instant end = instantCoder.decode(inStream);
         Boolean terminal = booleanCoder.decode(inStream);
         return new TerminalWindow(start, end, terminal);
     }
 
-    @Override public List<? extends Coder<?>> getCoderArguments() {
+    @Override
+    public List<? extends Coder<?>> getCoderArguments() {
         return Collections.emptyList();
     }
 
-    @Override public void verifyDeterministic() throws NonDeterministicException {}
+    @Override
+    public void verifyDeterministic() throws NonDeterministicException {
+        instantCoder.verifyDeterministic();
+        booleanCoder.verifyDeterministic();
+    }
 
 }
