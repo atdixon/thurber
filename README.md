@@ -23,7 +23,7 @@ _This is alpha software. Bleeding-edge and all that. Buyer beware._
 ## Principles
 
 * **Enable Clojure**
-    * Bring Clojure's powerful, expressive tookit (destructuring,
+    * Bring Clojure's powerful, expressive toolkit (destructuring,
       immutability, REPL, async tools, etc etc) to Apache Beam.
 * **REPL Friendly**
     * Build and test your pipelines incrementally in the REPL. 
