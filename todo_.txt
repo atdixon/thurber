@@ -41,4 +41,5 @@
 
 * releases
     * git tag -d 0.0.1-alpha # del local
+    * git push origin :tagname # del remote
     * lein release :alpha
