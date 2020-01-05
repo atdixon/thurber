@@ -1,6 +1,7 @@
 package thurber.java;
 
 import clojure.lang.APersistentMap;
+import clojure.lang.ArraySeq;
 import clojure.lang.ISeq;
 import clojure.lang.PersistentArrayMap;
 import clojure.lang.RT;
@@ -66,9 +67,10 @@ public final class TDoFn extends DoFn<Object, Object> {
             } else if (args.length == 0) {
                 rv = fn.invoke(processContext.element());
             } else {
+                // assert: args.length > 0
                 final Object[] args_ = Arrays.copyOf(args, args.length + 1);
                 args_[args.length] = processContext.element();
-                rv = fn.applyTo(RT.seq(args_));
+                rv = fn.applyTo(ArraySeq.create(args_, 0));
             }
             if (rv != null) {
                 WindowedContext useContext = processContext != null
