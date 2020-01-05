@@ -37,6 +37,8 @@ _This is alpha software. Bleeding-edge and all that. Buyer beware._
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
       is performant and works cleanly with Beam, embrace it.
+* Performant
+    * Hot code paths in thurber are finely tuned for data streaming 
 
 ## Quickstart
 
