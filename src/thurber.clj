@@ -54,7 +54,7 @@
 (def ^:private ^ThreadLocal tl-context (ThreadLocal.))
 (def ^:private ^ThreadLocal tl-proxy-args (ThreadLocal.))
 
-(defn ^PipelineOptions *pipeline-options* [] (:pipeline-options (.get tl-context)))
+(defn ^PipelineOptions *pipeline-options [] (:pipeline-options (.get tl-context)))
 (defn ^DoFn$ProcessContext *process-context [] (:process-context (.get tl-context)))
 (defn ^BoundedWindow *element-window [] (:element-window (.get tl-context)))
 (defn ^ValueState *value-state [] (:value-state (.get tl-context)))

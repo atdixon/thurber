@@ -1,5 +1,6 @@
 package thurber.java;
 
+import clojure.lang.IFn;
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.state.StateSpec;
@@ -14,7 +15,8 @@ import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 
 public final class TDoFn_Stateful extends DoFn<Object, Object> {
 
-    private final Var fn, timerFn;
+    private final Var fnVar, timerFnVar;
+    private transient IFn fn, timerFn;
     private final Object[] args, timerArgs;
 
     @StateId("state")
@@ -25,20 +27,23 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
     private final TimerSpec timerSpec
         = TimerSpecs.timer(TimeDomain.EVENT_TIME);
 
-    public TDoFn_Stateful(Var fn, Var timerFn, Object... timerArgs) {
-        this(fn, timerFn, new Object[]{}, timerArgs);
+    public TDoFn_Stateful(Var fnVar, Var timerFn, Object... timerArgs) {
+        this(fnVar, timerFn, new Object[]{}, timerArgs);
     }
 
-    public TDoFn_Stateful(Var fn, Var timerFn, Object[] args, Object[] timerArgs) {
-        this.fn = fn;
-        this.timerFn = timerFn;
+    public TDoFn_Stateful(Var fnVar, Var timerFnVar, Object[] args, Object[] timerArgs) {
+        this.fnVar = fnVar;
+        this.timerFnVar = timerFnVar;
         this.args = args;
         this.timerArgs = timerArgs;
     }
 
     @Setup
     public void setup() {
-        Core.require_(fn);
+        Core.require_(fnVar);
+        Core.require_(timerFnVar);
+        this.fn = (IFn) fnVar.deref();
+        this.timerFn = (IFn) timerFnVar.deref();
     }
 
     @ProcessElement

@@ -2,6 +2,7 @@ package thurber.java;
 
 import clojure.lang.APersistentMap;
 import clojure.lang.ArraySeq;
+import clojure.lang.IFn;
 import clojure.lang.ISeq;
 import clojure.lang.PersistentArrayMap;
 import clojure.lang.RT;
@@ -17,21 +18,23 @@ import java.util.Arrays;
 
 public final class TDoFn extends DoFn<Object, Object> {
 
-    private final Var fn;
+    private final Var fnVar;
+    private transient IFn fn;
     private final Object[] args;
 
-    public TDoFn(Var fn) {
-        this(fn, new Object[]{});
+    public TDoFn(Var fnVar) {
+        this(fnVar, new Object[]{});
     }
 
-    public TDoFn(Var fn, Object... args) {
-        this.fn = fn;
+    public TDoFn(Var fnVar, Object... args) {
+        this.fnVar = fnVar;
         this.args = args;
     }
 
     @Setup
     public void setup() {
-        Core.require_(fn);
+        Core.require_(fnVar);
+        this.fn = (IFn) fnVar.deref();
     }
 
     @ProcessElement
@@ -45,7 +48,7 @@ public final class TDoFn extends DoFn<Object, Object> {
     private static final ThreadLocal<APersistentMap> context
         = (ThreadLocal<APersistentMap>) Core.context_.deref();
 
-    static void execute(Var fn, Object[] args,
+    static void execute(IFn fn, Object[] args,
                         PipelineOptions options,
                         @Nullable ProcessContext processContext,
                         BoundedWindow window,
@@ -70,7 +73,7 @@ public final class TDoFn extends DoFn<Object, Object> {
                 // assert: args.length > 0
                 final Object[] args_ = Arrays.copyOf(args, args.length + 1);
                 args_[args.length] = processContext.element();
-                rv = fn.applyTo(ArraySeq.create(args_, 0));
+                rv = fn.applyTo(ArraySeq.create(args_));
             }
             if (rv != null) {
                 WindowedContext useContext = processContext != null
