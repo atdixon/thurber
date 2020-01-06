@@ -159,6 +159,9 @@ Streaming/big data implies hot code paths.
 
 Use Clojure [type hints](https://clojure.org/reference/java_interop#typehints) liberally.
 
+If deploying to GCP, use [Dataflow profiling](https://medium.com/google-cloud/profiling-dataflow-pipelines-ddbbef07761d)
+to zero in on areas to optimize.
+
 ## References
 
 * https://write.as/aaron-d/clojure-data-streaming-and-dodging-static-types
