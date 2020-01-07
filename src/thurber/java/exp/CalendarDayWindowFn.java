@@ -15,7 +15,6 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Collection;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.Collections.singleton;
 
 /**
@@ -50,7 +49,7 @@ public class CalendarDayWindowFn extends NonMergingWindowFn<Object, IntervalWind
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) throws Exception {
-        @Nonnull final DateTimeZone tz = (DateTimeZone) checkNotNull(timezoneFn.invoke(c.element()));
+        @Nonnull final DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
 
         final DateTime epoch = DEFAULT_START_DATE.withZoneRetainFields(tz);
         final DateTime current = new DateTime(c.timestamp(), tz);

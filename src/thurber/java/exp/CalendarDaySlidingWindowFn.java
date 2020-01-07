@@ -8,7 +8,11 @@ import org.apache.beam.sdk.transforms.windowing.IntervalWindow;
 import org.apache.beam.sdk.transforms.windowing.NonMergingWindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowFn;
 import org.apache.beam.sdk.transforms.windowing.WindowMappingFn;
-import org.joda.time.*;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.Days;
+import org.joda.time.Duration;
+import org.joda.time.Instant;
 import thurber.java.Core;
 
 import javax.annotation.Nonnull;
@@ -17,8 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * A data-driven variant of Beam's out-of-the-box {@link org.apache.beam.sdk.transforms.windowing.SlidingWindows}.
@@ -57,7 +59,7 @@ public class CalendarDaySlidingWindowFn extends NonMergingWindowFn<Object, Inter
 
     @Override
     public Collection<IntervalWindow> assignWindows(AssignContext c) {
-        @Nonnull final DateTimeZone tz = checkNotNull((DateTimeZone) timezoneFn.invoke(c.element()));
+        @Nonnull final DateTimeZone tz = (DateTimeZone) timezoneFn.invoke(c.element());
 
         final List<IntervalWindow> windows = new ArrayList<>((int) (size.getMillis() / ONE_DAY.getMillis()));
         final long lastStart = lastStartFor(c.timestamp(), tz);
