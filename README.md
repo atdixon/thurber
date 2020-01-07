@@ -102,7 +102,7 @@ instance can be provided to `apply!` and `comp*` but thurber supports other tran
     * Some complex `ParDo` implementations will need first-class access to the current 
       [ProcessContext](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/DoFn.WindowedContext.html)
       instance.
-        * `thurber/*process-context*` is always bound to this current context.
+        * `(thurber/*process-context)` is always bound to this current context.
         * When emitting elements _explicitly_ via this bound var, functions will typically return `nil`
           so that no automatic emissions occur.
 * `thurber/partial*`, `filter*`, `combine-per-key`, and other thurber functions produce transform 
