@@ -13,12 +13,6 @@
 (defn- ->terminal-delay [elem]
   (when-let [delay (:terminal-delay elem)] (Duration/millis ^long delay)))
 
-(defn- ->color [elem]
-  (:color elem))
-
-(defn- peek* [elem]
-  (log/warnf "%s ~ [%s]" elem (th/*element-window)) elem)
-
 (deftest test-terminal-window
   (let [p (-> (TestPipeline/create)
             (.enableAbandonedNodeEnforcement true))
@@ -34,11 +28,9 @@
                    (.withCoder th/nippy))
                  (Window/into
                    (TerminalWindowFn/withFuseAndGapDuration #'->terminal-delay (Duration/millis 10)))
-                 #'->color
-                 {:th/xform #'peek* :th/coder :th/inherit :th/name "hum"}
+                 :color
                  (Group/globally)
-                 (Flatten/iterables)
-                 {:th/xform #'peek* :th/coder :th/inherit})]
+                 (Flatten/iterables))]
     (-> output
       (PAssert/that)
       (.inWindow (TerminalWindow. (Instant. 0) (Instant. 19) false))

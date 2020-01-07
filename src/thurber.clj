@@ -11,7 +11,7 @@
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
-           (clojure.lang MapEntry)
+           (clojure.lang MapEntry Keyword)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
@@ -122,6 +122,9 @@
      :th/xform fn-var-or-name
      :th/params args}))
 
+(defn- kw-impl
+  [^Keyword kw elem] (kw elem))
+
 (defn- filter-impl [pred-fn & args]
   (when (apply pred-fn args)
     (last args)))
@@ -177,6 +180,7 @@
   ([xf override]
    (cond
      (instance? PTransform xf) (merge {:th/xform xf} override)
+     (keyword? xf) (->normal-xf* (partial* (str xf) #'kw-impl xf) override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
                                    (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-params :th/stateful]) override)]
@@ -185,18 +189,22 @@
 
 (defn ^PCollection apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
-  [input & xfs]
-  (reduce
-   (fn [acc xf]
-     (let [nxf (->normal-xf* xf)
-           ;; Take care here. acc' may commonly be PCollection but can also be
-           ;;    PCollectionTuple or PCollectionView, eg.
-           acc' (if (:th/name nxf)
-                  (.apply acc (:th/name nxf) (:th/xform nxf))
-                  (.apply acc (:th/xform nxf)))
-           explicit-coder (->explicit-coder* acc nxf)]
-       (when explicit-coder
-         (set-coder! acc' explicit-coder)) acc')) input xfs))
+  [input-or-xf-prefix & xfs]
+  (let [[prefix input xfs]
+        (if (string? input-or-xf-prefix)
+          [input-or-xf-prefix (first xfs) (rest xfs)]
+          ["" input-or-xf-prefix xfs])]
+    (reduce
+      (fn [acc xf]
+        (let [nxf (->normal-xf* xf)
+              ;; Take care here. acc' may commonly be PCollection but can also be
+              ;;    PCollectionTuple or PCollectionView, eg.
+              acc' (if (:th/name nxf)
+                     (.apply acc (str prefix (:th/name nxf)) (:th/xform nxf))
+                     (.apply acc (:th/xform nxf)))
+              explicit-coder (->explicit-coder* acc nxf)]
+          (when explicit-coder
+            (set-coder! acc' explicit-coder)) acc')) input xfs)))
 
 (defn ^PTransform comp* [& [xf-or-name :as xfs]]
   (proxy [PTransform] [(when (string? xf-or-name) xf-or-name)]
