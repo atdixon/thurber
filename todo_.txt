@@ -43,4 +43,5 @@
     * git tag -d 0.0.1-alpha # del local
     * git push origin :tagname # del remote
     * ensure eg 0.0.2-alpha2-SNAPSHOT, then
+    * lein javac (sanity check compile), then
     * lein release :alpha
