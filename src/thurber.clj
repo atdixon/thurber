@@ -68,7 +68,7 @@
   (TProxy/create proxy-var sig (into-array Object args)))
 
 (defn proxy* [proxy-var & args]
-  (proxy-with-signature* proxy-var nil args))
+  (apply proxy-with-signature* proxy-var nil args))
 
 ;; --
 
