@@ -11,21 +11,22 @@ import java.io.OutputStream;
 public final class TCoder extends CustomCoder<Object> {
 
     private final Var delegate;
+    private transient CustomCoder<Object> coder;
 
     public TCoder(Var delegate) {
         this.delegate = delegate;
+        //noinspection unchecked
+        this.coder = (CustomCoder<Object>) delegate.deref();
     }
 
     @Override
     public void encode(Object val, OutputStream out) throws CoderException, IOException {
-        ((CustomCoder<Object>) this.delegate.deref())
-            .encode(val, out);
+        coder.encode(val, out);
     }
 
     @Override
     public Object decode(InputStream in) throws CoderException, IOException {
-        return ((CustomCoder<Object>) this.delegate.deref())
-            .decode(in);
+        return coder.decode(in);
     }
 
     public void verifyDeterministic() {}
@@ -38,6 +39,8 @@ public final class TCoder extends CustomCoder<Object> {
         throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
         Core.require_(this.delegate);
+        //noinspection unchecked
+        this.coder = (CustomCoder<Object>) delegate.deref();
     }
 
 }

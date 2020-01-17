@@ -2,7 +2,6 @@ package thurber.java;
 
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
-import clojure.lang.Keyword;
 import clojure.lang.Var;
 import org.apache.beam.sdk.coders.Coder;
 
@@ -30,13 +29,6 @@ public class Core {
 
     static final Var context_ = (Var) Clojure.var("thurber", "tl-context");
     static final Var proxy_args_ = (Var) Clojure.var("thurber", "tl-proxy-args");
-
-    static final Keyword PO = Keyword.intern("pipeline-options");
-    static final Keyword PC = Keyword.intern("process-context");
-    static final Keyword EW = Keyword.intern("element-window");
-    static final Keyword VS = Keyword.intern("value-state");
-    static final Keyword ET = Keyword.intern("event-timer");
-    static final Keyword TC = Keyword.intern("timer-context");
 
     public static synchronized void require_(Var var) {
         require.invoke(var.ns.name);

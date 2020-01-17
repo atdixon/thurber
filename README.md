@@ -30,15 +30,15 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
     * Learn Beam semantics (windowing, triggering) interactively. 
 * **No Macros**
 * **No AOT**
-* **Bypassable API**
+* **"Bypass-able" API**
     * No API lock-in. Pipelines can be composed of Clojure/thurber and Java 
-      transforms. Don't like thurber? Incrementally refactor your pipeline
-      back to Java.
+      transforms. Incrementally refactor your pipeline to Clojure or back 
+      to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
       is performant and works cleanly with Beam, embrace it.
-* Performant
-    * Hot code paths in thurber are finely tuned for data streaming 
+* **Performance**
+    * Be finely tuned for data streaming 
 
 ## Quickstart
 

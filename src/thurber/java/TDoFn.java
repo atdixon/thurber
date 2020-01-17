@@ -1,10 +1,8 @@
 package thurber.java;
 
-import clojure.lang.APersistentMap;
 import clojure.lang.ArraySeq;
 import clojure.lang.IFn;
 import clojure.lang.ISeq;
-import clojure.lang.PersistentArrayMap;
 import clojure.lang.RT;
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
@@ -45,8 +43,8 @@ public final class TDoFn extends DoFn<Object, Object> {
     // --
 
     @SuppressWarnings("unchecked")
-    private static final ThreadLocal<APersistentMap> context
-        = (ThreadLocal<APersistentMap>) Core.context_.deref();
+    private static final ThreadLocal<TDoFnContext> context
+        = (ThreadLocal<TDoFnContext>) Core.context_.deref();
 
     static void execute(IFn fn, Object[] args,
                         PipelineOptions options,
@@ -55,13 +53,8 @@ public final class TDoFn extends DoFn<Object, Object> {
                         @Nullable ValueState<Object> state,
                         @Nullable Timer timer,
                         @Nullable OnTimerContext timerContext) {
-        context.set(new PersistentArrayMap(new Object[]{
-            Core.PO, options,
-            Core.PC, processContext,
-            Core.EW, window,
-            Core.VS, state,
-            Core.ET, timer,
-            Core.TC, timerContext}));
+        context.set(new TDoFnContext(
+            options, processContext, window, state, timer, timerContext));
         try {
             @Nullable final Object rv;
             if (processContext == null) {

@@ -7,68 +7,15 @@
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext GroupByKey)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
-           (clojure.lang MapEntry Keyword)
+           (clojure.lang MapEntry Keyword Symbol IPersistentMap)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
            (org.apache.beam.sdk.state ValueState Timer)))
-
-;; --
-
-(def ^:private nippy-impl
-  (proxy [CustomCoder] []
-    (encode [val ^OutputStream out]
-      (nippy/freeze-to-out! (DataOutputStream. out) val))
-    (decode [^InputStream in]
-      (nippy/thaw-from-in! (DataInputStream. in)))))
-
-(def nippy
-  (TCoder. #'nippy-impl))
-
-(def nippy-kv (KvCoder/of nippy nippy))
-
-;; nippy codes MapEntry as vectors by default; but we want them to stay
-;; MapEntry after thaw:
-
-(nippy/extend-freeze
-  MapEntry :thurber/map-entry
-  [val data-output]
-  (let [[k v] val]
-    (nippy/freeze-to-out! data-output [k v])))
-
-(nippy/extend-thaw
-  :thurber/map-entry
-  [data-input]
-  (let [[k v] (nippy/thaw-from-in! data-input)]
-    (MapEntry/create k v)))
-
-;; --
-
-;; Clojure thread bindings are more expensive than needed for hot
-;; code; ThreadLocals are faster, so we use them for thread bindings instead.
-
-(def ^:private ^ThreadLocal tl-context (ThreadLocal.))
-(def ^:private ^ThreadLocal tl-proxy-args (ThreadLocal.))
-
-(defn ^PipelineOptions *pipeline-options [] (:pipeline-options (.get tl-context)))
-(defn ^DoFn$ProcessContext *process-context [] (:process-context (.get tl-context)))
-(defn ^BoundedWindow *element-window [] (:element-window (.get tl-context)))
-(defn ^ValueState *value-state [] (:value-state (.get tl-context)))
-(defn ^Timer *event-timer [] (:event-timer (.get tl-context)))
-(defn ^DoFn$OnTimerContext *timer-context [] (:timer-context (.get tl-context)))
-(defn ^"[Ljava.lang.Object;" *proxy-args [] (.get tl-proxy-args))
-
-;; --
-
-(defn proxy-with-signature* [proxy-var sig & args]
-  (TProxy/create proxy-var sig (into-array Object args)))
-
-(defn proxy* [proxy-var & args]
-  (apply proxy-with-signature* proxy-var nil args))
 
 ;; --
 
@@ -105,6 +52,79 @@
     (recur (.getOptions obj))
     (->> (.getCustomConfig ^TOptions (.as obj TOptions))
       (into {}) walk/keywordize-keys)))
+
+;; --
+
+(defonce
+ ^:private nippy-impl
+ (proxy [CustomCoder] []
+   (encode [val ^OutputStream out]
+     (nippy/freeze-to-out! (DataOutputStream. out) val))
+   (decode [^InputStream in]
+     (nippy/thaw-from-in! (DataInputStream. in)))))
+
+(def nippy
+  (TCoder. #'nippy-impl))
+
+(def nippy-kv (KvCoder/of nippy nippy))
+
+;; nippy codes MapEntry as vectors by default; but we want them to stay
+;; MapEntry after thaw:
+
+(nippy/extend-freeze
+  MapEntry :thurber/map-entry
+  [val data-output]
+  (let [[k v] val]
+    (nippy/freeze-to-out! data-output [k v])))
+
+(nippy/extend-thaw
+  :thurber/map-entry
+  [data-input]
+  (let [[k v] (nippy/thaw-from-in! data-input)]
+    (MapEntry/create k v)))
+
+;; --
+
+;; Clojure thread bindings are more expensive than needed for hot code;
+;; ThreadLocals are faster, so we use them for thread bindings instead.
+
+(defonce ^:private ^ThreadLocal tl-context (ThreadLocal.))
+(defonce ^:private ^ThreadLocal tl-proxy-args (ThreadLocal.))
+
+(def ^:private get-custom-config-memo
+  (let [mem (atom {})]
+    (fn [^PipelineOptions opts]
+      (if-let [e (find @mem (.getJobName opts))]
+        (val e)
+        (let [ret (get-custom-config opts)]
+          (swap! mem assoc (.getJobName opts) ret)
+          ret)))))
+
+(defn ^PipelineOptions *pipeline-options [] (.-pipelineOptions ^TDoFnContext (.get tl-context)))
+(defn ^IPersistentMap *custom-config [] (get-custom-config-memo (*pipeline-options)))
+(defn ^DoFn$ProcessContext *process-context [] (.-processContext ^TDoFnContext (.get tl-context)))
+(defn ^BoundedWindow *element-window [] (.-elementWindow ^TDoFnContext (.get tl-context)))
+(defn ^ValueState *value-state [] (.-valueState ^TDoFnContext (.get tl-context)))
+(defn ^Timer *event-timer [] (:event-timer (.-eventTimer ^TDoFnContext (.get tl-context))))
+(defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TDoFnContext (.get tl-context)))
+
+(defn ^"[Ljava.lang.Object;" *proxy-args [] (.get tl-proxy-args))
+
+;; --
+
+(defmacro inline [fn-form]
+  {:pre [(= #'clojure.core/fn (resolve (first fn-form)))
+         (symbol? (second fn-form))]}
+  (let [name (second fn-form)]
+    (intern *ns* name (eval fn-form)) `(intern ~*ns* '~name)))
+
+;; --
+
+(defn proxy-with-signature* [proxy-var sig & args]
+  (TProxy/create proxy-var sig (into-array Object args)))
+
+(defn proxy* [proxy-var & args]
+  (apply proxy-with-signature* proxy-var nil args))
 
 ;; --
 

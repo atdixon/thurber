@@ -29,7 +29,8 @@
           [;; -- demo deps --
            [deercreeklabs/lancaster "0.8.6"]
            [org.apache.beam/beam-runners-direct-java "2.16.0"]
-           [org.apache.beam/beam-examples-java "2.16.0"]
+           [org.apache.beam/beam-examples-java "2.16.0"
+            :exclusions [org.slf4j/slf4j-jdk14]]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dev [:demo
          {:source-paths ["demo"]
