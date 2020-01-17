@@ -114,9 +114,12 @@
 
 (defmacro inline [fn-form]
   {:pre [(= #'clojure.core/fn (resolve (first fn-form)))
-         (symbol? (second fn-form))]}
-  (let [name (second fn-form)]
-    (intern *ns* name (eval fn-form)) `(intern ~*ns* '~name)))
+         (symbol? (second fn-form))
+         (vector? (first (nnext fn-form)))]}
+  (let [name (second fn-form)
+        args (first (nnext fn-form))]
+    (intern *ns* (with-meta name {:arglists [args]}) (eval fn-form))
+    `(intern ~*ns* '~name)))
 
 ;; --
 
@@ -168,8 +171,10 @@
 
 (defn- ^TCoder ->explicit-coder* [prev nxf]
   (when-let [c (:th/coder nxf)]
-    (if (= c :th/inherit)
-      (.getCoder prev) c)))
+    (condp = c
+      :th/inherit-or-nippy (or (.getCoder prev) nippy)
+      :th/inherit (.getCoder prev)
+      c)))
 
 (defn- ->pardo [xf params timer-params stateful? timer-fn]
   (let [tags (into [] (filter #(instance? TupleTag %) params))
@@ -202,10 +207,10 @@
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (keyword? xf) (->normal-xf* (partial* (str xf) #'kw-impl xf) override)
      (map? xf) (->normal-xf* (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
-     (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder nippy}
-                                   (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-params :th/stateful]) override)]
+     (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder :th/inherit-or-nippy}
+                              (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-params :th/stateful]) override)]
                  (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/timer-params normal) (:th/stateful normal)
-                                                  (:th/timer-fn normal)))))))
+                                           (:th/timer-fn normal)))))))
 
 (defn ^PCollection apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
@@ -254,7 +259,10 @@
   (let [xf (deref xf-var)]
     (cond
       (satisfies? CombineFn xf) (TCombine. xf-var)
-      (fn? xf) (simple-bi* xf-var))))
+      (fn? xf) (let [arity (apply max (map count (:arglists (meta xf-var))))]
+                 (case arity
+                   1 (simple* xf-var)
+                   2 (simple-bi* xf-var))))))
 
 (defn combine-globally [xf-var]
   {:th/name (var->name xf-var)

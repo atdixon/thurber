@@ -14,12 +14,13 @@
            (com.google.api.services.bigquery.model TableReference TableRow TableSchema TableFieldSchema)
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)))
 
-(defn- ->table-field-schema [key type]
+(defn ->table-field-schema [key type]
   (doto (TableFieldSchema.)
     (.setName key) (.setType type)))
+
 ;; --
 
-(defn- ->game-events-xf [topic]
+(defn ->game-events-xf [topic]
   (th/comp* "game-events"
     (-> (PubsubIO/readStrings)
       (.withTimestampAttribute GameConstants/TIMESTAMP_ATTRIBUTE)
@@ -97,8 +98,8 @@
 
 ;; --
 
-(defn- ->write-to-big-query-xf [xf-name project-id dataset-id table-name
-                                ^TableSchema table-row-schema table-row-fn]
+(defn ->write-to-big-query-xf [xf-name project-id dataset-id table-name
+                               ^TableSchema table-row-schema table-row-fn]
   (th/comp* xf-name
     table-row-fn
     (-> (BigQueryIO/writeTableRows)

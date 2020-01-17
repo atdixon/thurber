@@ -1,5 +1,9 @@
 * alpha release
 
+* test game-stats dataflow;
+    impl stateful game example;
+    unit test via redefs
+
 * metrics
 * job name
 
@@ -29,6 +33,13 @@
 
 * unit test more demos and gaming ports
     - show off redefs
+
+* since type hints for dofn's necessary/good,
+    what about context injection by type??? how far could this go?
+    (defn foo [^Integer x])
+    => #'user/foo
+    (meta (ffirst (:arglists (meta #'foo))))
+    => {:tag Integer}
 
 * templates support
 

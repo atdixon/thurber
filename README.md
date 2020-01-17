@@ -28,7 +28,8 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 * **REPL Friendly**
     * Build and test your pipelines incrementally in the REPL. 
     * Learn Beam semantics (windowing, triggering) interactively. 
-* **No Macros**
+* **Avoid Macros**
+    * Limit macro infection. Most thurber constructions are macro-less.
 * **No AOT**
 * **"Bypass-able" API**
     * No API lock-in. Pipelines can be composed of Clojure/thurber and Java 
