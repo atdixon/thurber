@@ -1,8 +1,8 @@
 (ns simple.hello-world
   (:require [thurber :as th]))
 
-(defn- create-pipeline [opts]
-  (doto (th/create-pipeline opts)
+(defn- build-pipeline! [pipeline]
+  (doto pipeline
     (th/apply!
      (th/create ["hello world"])
      ;; th/inline allows named functions to be "inlined" in a pipeline
@@ -25,6 +25,8 @@
      #'th/log-elem*)))
 
 (defn demo! []
-  (-> (create-pipeline
-       {:custom-config {:prefix "message: "}})
-      (.run)))
+  (->
+    (th/create-pipeline
+        {:custom-config {:prefix "message: "}})
+    (build-pipeline!)
+    (.run)))

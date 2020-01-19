@@ -44,8 +44,8 @@
       (.set (th/*event-timer) next-timer-time))
     (KV/of elem-key 0)))
 
-(defn- create-pipeline []
-  (doto (th/create-pipeline)
+(defn- build-pipeline! [pipeline]
+  (doto pipeline
     (th/apply!
       {:th/xform (Create/timestamped [time-1 time-2 time-3])
        :th/coder th/nippy-kv}
@@ -63,5 +63,7 @@
       #'sink*)))
 
 (defn demo! []
-  (-> (create-pipeline)
+  (->
+    (th/create-pipeline)
+    (build-pipeline!)
     (.run)))

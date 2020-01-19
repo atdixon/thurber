@@ -5,7 +5,8 @@
             [word-count.windowed]
             [clj-time.coerce :as c]
             [clj-time.core :as t]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [test-support])
   (:import (org.apache.beam.sdk.testing PAssert)))
 
 ;;; Here we test the word-count pipeline by composing some if

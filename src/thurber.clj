@@ -105,7 +105,7 @@
 (defn ^DoFn$ProcessContext *process-context [] (.-processContext ^TDoFnContext (.get tl-context)))
 (defn ^BoundedWindow *element-window [] (.-elementWindow ^TDoFnContext (.get tl-context)))
 (defn ^ValueState *value-state [] (.-valueState ^TDoFnContext (.get tl-context)))
-(defn ^Timer *event-timer [] (:event-timer (.-eventTimer ^TDoFnContext (.get tl-context))))
+(defn ^Timer *event-timer [] (.-eventTimer ^TDoFnContext (.get tl-context)))
 (defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TDoFnContext (.get tl-context)))
 
 (defn ^"[Ljava.lang.Object;" *proxy-args [] (.get tl-proxy-args))
@@ -260,7 +260,9 @@
   (let [xf (deref xf-var)]
     (cond
       (satisfies? CombineFn xf) (TCombine. xf-var)
-      (fn? xf) (let [arity (apply max (map count (:arglists (meta xf-var))))]
+      (fn? xf) (let [arity (apply max
+                             (filter #{1 2}
+                               (map count (:arglists (meta xf-var)))))]
                  (case arity
                    1 (simple* xf-var)
                    2 (simple-bi* xf-var))))))

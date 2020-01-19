@@ -12,9 +12,8 @@
   (let [mean (.sideInput (th/*process-context) mean-view)]
     (< elem mean)))
 
-(defn- create-pipeline []
-  (let [pipeline (th/create-pipeline)
-        data (th/apply! pipeline (th/create [1 2 3 4 5 6 7 8]))
+(defn- build-pipeline! [pipeline]
+  (let [data (th/apply! pipeline (th/create [1 2 3 4 5 6 7 8]))
         mean-view (th/apply!
                     data
                     (Mean/globally)
@@ -26,6 +25,8 @@
     pipeline))
 
 (defn demo! []
-  (-> (create-pipeline)
+  (->
+    (th/create-pipeline)
+    (build-pipeline!)
     (.run)))
 

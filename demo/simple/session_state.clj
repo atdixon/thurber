@@ -57,9 +57,8 @@
     (.clear (th/*value-state))
     (:buffer state)))
 
-(defn- create-pipeline []
-  (let [pipeline (th/create-pipeline)
-        source (UnboundedSeqSource/create #'custom-source)]
+(defn- build-pipeline! [pipeline]
+  (let [source (UnboundedSeqSource/create #'custom-source)]
     (th/apply!
       pipeline
       (Read/from source)
@@ -68,10 +67,13 @@
           (GlobalWindows.)))
       (th/partial* #'th/->kv :user)
       {:th/xform #'special*
-       :th/timer-fn #'special-timer*}
+       :th/timer-fn #'special-timer*
+       :th/coder th/nippy}
       #'sink*)
     pipeline))
 
 (defn demo! []
-  (-> (create-pipeline)
+  (->
+    (th/create-pipeline)
+    (build-pipeline!)
     (.run)))
