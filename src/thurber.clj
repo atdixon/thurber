@@ -212,8 +212,9 @@
                  (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/timer-params normal) (:th/stateful normal)
                                            (:th/timer-fn normal)))))))
 
-(defn ^PCollection apply!
-  "Apply transforms to an input (Pipeline, PCollection, PBegin ...)"
+(defn apply!
+  "Apply transforms to an input (Pipeline, PCollection, PBegin ...);
+  Answers a PCollection, PCollectionView, ..."
   [input-or-xf-prefix & xfs]
   (let [[prefix input xfs]
         (if (string? input-or-xf-prefix)
@@ -284,8 +285,11 @@
 
 ;; --
 
-(defn kv->clj [^KV kv]
+(defn ^{:th/coder nippy} kv->clj [^KV kv]
   (MapEntry/create (.getKey kv) (.getValue kv)))
+
+(defn ^{:th/coder nippy-kv} clj->kv [[k v]]
+  (KV/of k v))
 
 ;; --
 

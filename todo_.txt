@@ -4,6 +4,8 @@
     impl stateful game example;
     unit test via redefs
 
+* window + trigger DSL?
+
 * metrics
 * job name
 

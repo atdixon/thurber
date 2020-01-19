@@ -24,7 +24,7 @@
      :th/coder th/nippy-kv}
     (Sum/integersPerKey)
     ;; It is not necessary to convert Beam's KV type to Clojure; however
-    ;; doing so allows us to tap into Clojure goodness such as destructuring.
+    ;; doing so allows us to employ Clojure destructuring downstream.
     ;; Beam KVs become MapEntrys here; these can be destructured like
     ;; vectors. See format-row.
     #'th/kv->clj))
