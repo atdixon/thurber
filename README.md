@@ -48,7 +48,6 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 3. Copy &amp; paste:
 
 ```clojure
-
 (ns try-thurber
    (:require [thurber :as th]
              [clojure.string :as str])
@@ -69,7 +68,17 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
           (fn format-as-text 
             [[k v]] (format "%s: %d" k v)))
         #'th/log-elem*)))
+```
 
+You should see streaming word counts:
+
+```
+...
+INFO thurber - extremely: 1
+INFO thurber - undertakes: 1
+INFO thurber - pleasure: 7
+INFO thurber - you: 2
+...
 ```
 
 ## Guide
