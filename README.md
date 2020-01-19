@@ -8,7 +8,7 @@
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
 ~~steroids~~ Clojure.
 
-_This is alpha software. Bleeding-edge and all that. API subject to mood swings.
+_This is alpha software. Bleeding-edge and all that. API subject to mood swings._
 
 * [Principles](#principles)
 * [Quickstart](#quickstart)
