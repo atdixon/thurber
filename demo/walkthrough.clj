@@ -22,27 +22,17 @@
 (th/create-pipeline)
 
 ;; Create a Beam pipeline from command-line arguments:
-(def pipeline-from-args
-  (th/create-pipeline ["--targetParallelism=7" "--jobName=thurber-walkthrough"]))
+(th/create-pipeline ["--targetParallelism=7" "--jobName=thurber-walkthrough"])
 
-(assert (= "thurber-walkthrough" (-> pipeline-from-args (.getOptions) (.getJobName))))
+;; Create a Beam pipeline from args provided as a Clojure map (skeleton-cased
+;; keywords will map to Beam's camelCased option names):
+(th/create-pipeline {:target-parallelism 7
+                     :job-name "thurber-walkthrough"
+                     :custom-config {:my-custom-config-val 5}})
 
-;; Create a Beam pipeline from args provided as a Clojure map:
-(def pipeline-from-args-map
-  (th/create-pipeline {:target-parallelism 7
-                       :job-name "thurber-walkthrough"}))
+;; The :custom-config key is well-known to thurber and used to provide
+;; dynamic options to pipelines. (More on this later.)
 
-(assert (= "thurber-walkthrough" (-> pipeline-from-args-map (.getOptions) (.getJobName))))
-(assert (= 7 (-> pipeline-from-args-map (.getOptions) (.as DirectOptions) (.getTargetParallelism))))
-
-;; A "custom config" arg can be provided; this allows for dynamic arguments (i.e., no need
-;; to define a static class extension to PipelineOptions). The custom config will be available
-;; to pipeline (at pipeline construction-time or run-time) as a Clojure map.
-(def pipeline-with-custom-config
-  (th/create-pipeline {:target-parallelism 11
-                       :custom-config {:my-custom-config-val 5}}))
-
-(assert (= 5 (:my-custom-config-val (th/get-custom-config pipeline-with-custom-config))))
 
 ;;;; SOURCES
 
@@ -55,6 +45,7 @@
 ;; We can also create any Beam Java-based source:
 (def file-source (-> (TextIO/read) (.from "word_count/lorem.txt")))
 
+
 ;;;; SINKS
 
 ;; Pipelines write to sinks.
@@ -66,7 +57,8 @@
 ;; for testing:
 (def log-sink #'th/log-elem*)
 
-;;;; SIMPLEST PIPELINE
+
+;;;; COMPOSING PIPELINES
 
 ;; thurber's `apply!` is used to build pipelines.
 
@@ -80,7 +72,8 @@
 ;; source (1, 2, 3...not necessarily in this order)
 (.run simplest-pipeline)
 
-;;;; FUNCTIONS (ParDo)
+
+;;;; ParDo TRANSFORMS
 
 ;; The simplest Beam transform is a ParDo ("parallel do").
 
@@ -95,6 +88,7 @@
 ;; This logs 2 and 4 and 6 in some order:
 (.run simple-pipeline)
 
+
 ;;;; SERIALIZABLE FUNCTIONS
 
 ;; When constructing our pipeline, why did we refer to
@@ -106,6 +100,7 @@
 ;; are serializable. In this case #'double is serialized
 ;; and sent to Beam cluster nodes. When the var is deserialized,
 ;; thurber ensures that it is rebound to its function.
+
 
 ;;;; INLINE FUNCTIONS
 
@@ -128,6 +123,7 @@
 ;; This logs 3, 6, and 9:
 (.run simple-pipeline)
 
+
 ;;;; PARTIAL FUNCTIONS
 
 ;; During runtime stream processing, ParDo functions receive a
@@ -144,6 +140,7 @@
 
 ;; This logs 4, 8, and 12:
 (.run simple-pipeline)
+
 
 ;;;; MULTIPLE OUTPUTS
 
@@ -166,7 +163,8 @@
 ;; This logs each word in each sentence individually:
 (.run words-pipeline)
 
-;;;; GROUP BY KEY
+
+;;;; GroupByKey TRANSFORMS
 
 ;; Most Beam pipelines require "shuffle" steps where related data is
 ;; gathered together by some value (i.e, by a "key" value). Before
@@ -188,6 +186,7 @@
 
 ;; This logs grouped values, KV{:even [2]} and  KV{:odd [3, 1]}...
 (.run example-pipeline)
+
 
 ;;;; COMPOSITE TRANSFORMS
 
@@ -216,7 +215,8 @@
 ;;           "There are 1 even numbers."
 (.run example-pipeline)
 
-;;;; COMBINE
+
+;;;; COMBINE TRANSFORMS
 
 ;; Beam's Combine transforms are like Clojure Reducers (https://clojure.org/reference/reducers),
 ;; and thurber uses similar concepts of reducef and combinef as `clojure.core.reducers/fold`.
@@ -238,6 +238,7 @@
 ;; todo coders!!!
 ;; todo ser-fn
 ;; todo thread-local bindings etc.
+;; todo   config and custom config
 ;; todo state and timer API
 ;; todo output tags
 ;; todo side inputs
