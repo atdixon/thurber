@@ -11,6 +11,8 @@ public class Core {
 
     static final IFn concat = Clojure.var("clojure.core", "concat");
 
+    static final IFn reduce = Clojure.var("clojure.core", "reduce");
+
     static {
         require.invoke(Clojure.read("thurber"));
     }
@@ -20,20 +22,17 @@ public class Core {
     @SuppressWarnings("unchecked")
     public static Coder<Object> nippy_deref_ = (Coder<Object>) nippy_.deref();
 
-    static IFn create_accumulator_ = Clojure.var("thurber", "create-accumulator");
-    static IFn add_input_ = Clojure.var("thurber", "add-input");
-    static IFn merge_accumulators_ = Clojure.var("thurber", "merge-accumulators");
-    static IFn extract_output_ = Clojure.var("thurber", "extract-output");
-
     // -- thread locals --
 
     static final Var context_ = (Var) Clojure.var("thurber", "tl-context");
     static final Var proxy_args_ = (Var) Clojure.var("thurber", "tl-proxy-args");
 
-    public static synchronized void require_(Var var) {
-        require.invoke(var.ns.name);
+    public static synchronized void require_(Var... vars) {
+        for (Var var : vars)
+            require.invoke(var.ns.name);
     }
 
-    private Core() {}
+    private Core() {
+    }
 
 }

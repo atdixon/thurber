@@ -6,9 +6,13 @@
 
 * unit test all other demos
 
+* extensive combine tests
+
 * bump to latest beam release
 
 * replace Guide with separate Walkthrough page
+
+* no star suffix th/comp, th/partial, th/filter, th/simple, th/simple-bi ...
 
 * UnboundedSeqSource needed? or facade beam's own facilities
 

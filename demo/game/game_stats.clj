@@ -10,7 +10,7 @@
            (org.apache.beam.examples.common ExampleUtils)
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)
-           (org.apache.beam.sdk.transforms Sum Values Mean View)
+           (org.apache.beam.sdk.transforms Sum Values Mean View Combine)
            (org.apache.beam.sdk.values PCollection KV PCollectionView)
            (com.google.api.services.bigquery.model TableSchema TableRow)))
 
@@ -123,8 +123,9 @@
        (Window/into
          (Sessions/withGapDuration
            (Duration/standardMinutes (:session-gap custom-conf))))}
-      (th/combine-per-key
-        (th/inline (fn existential-combine [_] 0)))
+      (Combine/perKey
+        (th/combiner
+          (th/inline (fn existential-combine [& _] 0))))
       (th/inline
         (fn user-session-info [elem]
           (let [w ^IntervalWindow (th/*element-window)]

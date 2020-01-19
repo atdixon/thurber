@@ -1,32 +1,35 @@
 (ns simple.sum-and-count
   (:require [thurber :as th]
-            [clojure.tools.logging :as log]))
+            [clojure.tools.logging :as log])
+  (:import (org.apache.beam.sdk.transforms Combine)))
 
 ;; Simple demonstration of combine.
 
 (defn- sink* [elem]
   (log/info elem))
 
-(def ^:private sum-and-count-combiner
-  (th/def-combiner
-    (create-accumulator [_] {:sum 0 :count 0})
-    (add-input [_ acc input]
-      (-> acc
-        (update :sum + input)
-        (update :count inc)))
-    (merge-accumulators [_ coll] (apply merge-with + coll))
-    (extract-output [_ acc] acc)))
+(defn- reducef
+  ([] {:sum 0 :count 0})
+  ([acc inp] (-> acc
+               (update :sum + inp)
+               (update :count inc))))
+
+(defn- combinef [& accs]
+  (apply merge-with + accs))
 
 (defn- build-pipeline! [pipeline]
   (let [data (th/apply! pipeline (th/create [1 2 3 4 5]))]
     (th/apply!
       data
-      (th/combine-globally #'sum-and-count-combiner)
+      (Combine/globally
+        (th/combiner #'combinef #'reducef))
       #'sink*)
     (th/apply!
       data
-      (th/combine-globally #'+)
-      #'sink*)
+      (Combine/globally
+        (th/combiner #'+))
+      {:th/name "sink-2"
+       :th/xform #'sink*})
     pipeline))
 
 (defn demo! []

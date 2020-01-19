@@ -1,5 +1,7 @@
 package thurber.java;
 
+import clojure.lang.IFn;
+import clojure.lang.RT;
 import clojure.lang.Var;
 import org.apache.beam.sdk.transforms.Combine;
 
@@ -7,26 +9,32 @@ import java.io.IOException;
 
 public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
 
-    private final Var cfn;
+    private final Var extractfVar, combinefVar, reducefVar;
+    private transient IFn extractf, combinef, reducef;
 
-    public TCombine(Var cfn) {
-        this.cfn = cfn;
+    public TCombine(Var extractfVar, Var combinefVar, Var reducefVar) {
+        this.extractfVar = extractfVar;
+        this.combinefVar = combinefVar;
+        this.reducefVar = reducefVar;
+        this.extractf = (IFn) extractfVar.deref();
+        this.combinef = (IFn) combinefVar.deref();
+        this.reducef = (IFn) reducefVar.deref();
     }
 
     @Override public Object createAccumulator() {
-        return Core.create_accumulator_.invoke(this.cfn.deref());
+        return this.reducef.invoke();
     }
 
     @Override public Object addInput(Object acc, Object input) {
-        return Core.add_input_.invoke(this.cfn.deref(), acc, input);
+        return this.reducef.invoke(acc, input);
     }
 
     @Override public Object mergeAccumulators(Iterable<Object> accs) {
-        return Core.merge_accumulators_.invoke(this.cfn.deref(), accs);
+        return this.combinef.applyTo(RT.seq(accs));
     }
 
     @Override public Object extractOutput(Object acc) {
-        return Core.extract_output_.invoke(this.cfn.deref(), acc);
+        return this.extractf.invoke(acc);
     }
 
     // todo
@@ -43,7 +51,10 @@ public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
     private void readObject(java.io.ObjectInputStream stream)
         throws IOException, ClassNotFoundException {
         stream.defaultReadObject();
-        Core.require_(this.cfn);
+        Core.require_(this.extractfVar, this.combinefVar, this.reducefVar);
+        this.extractf = (IFn) extractfVar.deref();
+        this.combinef = (IFn) combinefVar.deref();
+        this.reducef = (IFn) reducefVar.deref();
     }
 
 }

@@ -40,8 +40,7 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
 
     @Setup
     public void setup() {
-        Core.require_(fnVar);
-        Core.require_(timerFnVar);
+        Core.require_(fnVar, timerFnVar);
         this.fn = (IFn) fnVar.deref();
         this.timerFn = (IFn) timerFnVar.deref();
     }

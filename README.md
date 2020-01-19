@@ -83,59 +83,9 @@ INFO thurber - you: 2
 ...
 ```
 
-## Guide
+## Documentation
 
-Beam's Java API is oriented around constructing a [Pipeline](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/Pipeline.html)
-and issuing a series of `.apply` invocations to mutate the pipeline and build up a directed, acyclic graph of stages.
-
-`thurber/apply!` applies a series of transforms 
-to a `Pipeline` or [PCollection](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/values/PCollection.html). 
-(When pipeline graphs fork, multiple `apply!` invocations may be needed to create the different paths.)
-
-`thurber/comp*` is how [composite transforms](https://beam.apache.org/documentation/programming-guide/#composite-transforms)
-are made. The result of `comp*` is a transform that can be used again within a subsequent call to `apply!` or `comp*`.
-
-#### Transforms
-
-Any [PTransform](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/PTransform.html) 
-instance can be provided to `apply!` and `comp*` but thurber supports other transform representations:
-
-* A Clojure var can be provided and will convert to a 
-  [ParDo](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/ParDo.html) 
-  transform. The var must ref a function:
-    * e.g., `#'extract-words`
-    * The will be invoked with the processing element as its arg.
-    * The return value of the function will automatically emit downstream via 
-  [ProcessContext.output()](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/DoFn.WindowedContext.html#output-OutputT-).
-    * If the function returns a `seq` then all items in the seq are emitted. Often these seqs are lazy and produce
-  many elements.
-    * May return `nil` in which case no automatic output occurs.
-    * Some complex `ParDo` implementations will need first-class access to the current 
-      [ProcessContext](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/transforms/DoFn.WindowedContext.html)
-      instance.
-        * `(thurber/*process-context)` is always bound to this current context.
-        * When emitting elements _explicitly_ via this bound var, functions will typically return `nil`
-          so that no automatic emissions occur.
-* `thurber/partial*`, `filter*`, `combine-per-key`, and other thurber functions produce transform 
-  representations that can be used in `apply!` and `comp*`
-
-#### Coders
-
-Every Beam `PCollection` must have a
-[Coder](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/coders/Coder.html).
-
-The `thurber/nippy` coder de/serializes [nippy](https://github.com/ptaoussanis/nippy) supported data types 
-(this includes all Clojure core data types).
-
-`thurber/nippy-kv` codes Beam 
-[KV](https://beam.apache.org/releases/javadoc/current/org/apache/beam/sdk/values/KV.html)
-values that contain nippy-supported data types for the key and value.
-
-Coders can be specified as Clojure metadata on function vars, or directly 
-within a thurber transformation representation.
-
-The default coder used is `thurber/nippy` which is appropriate for var-referenced
-functions (`ParDo`) that output Clojure data types.
+* [Code walkthrough](./demo/walkthrough.clj)
 
 ## Demos
 

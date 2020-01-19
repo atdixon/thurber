@@ -5,7 +5,7 @@
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy]
             [clojure.tools.logging :as log])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext GroupByKey)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext Count SerializableFunction Combine SerializableBiFunction DoFn$OnTimerContext GroupByKey Combine$CombineFn)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
@@ -161,11 +161,12 @@
      :th/xform #'filter-impl
      :th/params (conj args pred-var-or-name)}))
 
-(defn ^SerializableFunction simple* [fn-var & args]
-  (TSerializableFunction. fn-var args))
-
-(defn ^SerializableBiFunction simple-bi* [fn-var & args]
-  (TSerializableBiFunction. fn-var args))
+(defn ser-fn [fn-var & args]
+  (case (apply max
+          (filter #{1 2}
+            (map count (:arglists (meta fn-var)))))
+    1 (TSerializableFunction. fn-var args)
+    2 (TSerializableBiFunction. fn-var args)))
 
 ;; --
 
@@ -246,34 +247,12 @@
 
 ;; --
 
-(defprotocol CombineFn
-  (create-accumulator [this])
-  (add-input [this acc input])
-  (merge-accumulators [this acc-coll])
-  (extract-output [this acc]))
-
-(defmacro def-combiner [& body]
-  `(reify CombineFn
-     ~@body))
-
-(defn- combiner* [xf-var]
-  (let [xf (deref xf-var)]
-    (cond
-      (satisfies? CombineFn xf) (TCombine. xf-var)
-      (fn? xf) (let [arity (apply max
-                             (filter #{1 2}
-                               (map count (:arglists (meta xf-var)))))]
-                 (case arity
-                   1 (simple* xf-var)
-                   2 (simple-bi* xf-var))))))
-
-(defn combine-globally [xf-var]
-  {:th/name (var->name xf-var)
-   :th/xform (Combine/globally (combiner* xf-var))})
-
-(defn combine-per-key [xf-var]
-  {:th/name (var->name xf-var)
-   :th/xform (Combine/perKey (combiner* xf-var))})
+(defn ^Combine$CombineFn combiner
+  ([reducef] (combiner reducef reducef))
+  ([combinef reducef] (combiner #'identity combinef reducef))
+  ([extractf combinef reducef]
+   {:pre [(var? extractf) (var? combinef) (var? reducef)]}
+   (TCombine. extractf combinef reducef)))
 
 ;; --
 

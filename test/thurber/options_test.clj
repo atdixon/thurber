@@ -1,4 +1,4 @@
-(ns thurber.java.options
+(ns thurber.options-test
   (:require [clojure.test :refer :all]
             [thurber :as th])
   (:import (org.apache.beam.runners.direct DirectOptions)))
@@ -21,10 +21,10 @@
   (is (= {} (-> (th/create-options {}) th/get-custom-config)))
   (is (= {} (-> (th/create-options {:target-parallelism 7
                                     :custom-config {}}) th/get-custom-config)))
-  (is (= {:message "contact"}
+  (is (= {:message "contact" :threshold 123}
         (-> (th/create-options
               {:target-parallelism 7
-               :custom-config {:message :contact}})
+               :custom-config {:message :contact :threshold 123}})
           th/get-custom-config)))
   (is (= {:message "contact"}
         (-> (th/create-options

@@ -152,7 +152,7 @@
         window (IntervalWindow. base-time (mins team-window-duration-minutes))]
     (-> (PAssert/that team-scores)
       (.inWindow window)
-      (.satisfies (th/simple*
+      (.satisfies (th/ser-fn
                     (th/inline
                       (fn test-team-scores-observably-late-assert [input]
                         (is (some #{["blue" (int 11)]} input))
