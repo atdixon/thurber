@@ -36,8 +36,6 @@
 
 ;;;; SOURCES
 
-;; Pipelines read from sources.
-
 ;; We can create a source from hard-coded Clojure data. This is often
 ;; useful for testing:
 (def data-source (th/create [1 2 3]))
@@ -47,8 +45,6 @@
 
 
 ;;;; SINKS
-
-;; Pipelines write to sinks.
 
 ;; We can create a sink using any of Beam Java-based sink:
 (def file-sink (-> (TextIO/write) (.to "word-counts")))
