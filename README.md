@@ -57,9 +57,6 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 (defn- extract-words [sentence]
   (remove empty? (str/split sentence #"[^\p{L}]+")))
 
-(defn- format-as-text [[k v]]
-  (format "%s: %d" k v))
-
 (.run
     (doto (th/create-pipeline)
       (th/apply!
@@ -68,7 +65,9 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
         #'extract-words
         #'th/->kv
         (th/count-per-key)
-        #'format-as-text
+        (th/inline 
+          (fn format-as-text 
+            [[k v]] (format "%s: %d" k v)))
         #'th/log-elem*)))
 
 ```
