@@ -6,6 +6,8 @@
 
 * unit test all other demos
 
+* bump beam release
+
 * UnboundedSeqSource needed? or facade beam's own facilities
 
 * window + trigger DSL?
