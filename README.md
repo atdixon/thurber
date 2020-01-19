@@ -12,9 +12,7 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 
 * [Principles](#principles)
 * [Quickstart](#quickstart)
-* [Guide](#guide)
-    * [Transforms](#transforms)
-    * [Coders](#coders)
+* [Documentation](#documentation)
 * [Demos](#demos)
     * [Word Count](#word-count)
     * [Mobile Gaming Example](#mobile-gaming-example)
