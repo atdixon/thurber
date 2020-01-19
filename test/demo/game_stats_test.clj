@@ -1,6 +1,7 @@
 (ns demo.game-stats-test
   (:require [clojure.test :refer :all]
             [thurber :as th]
+            [test-support]
             [game.game-stats])
   (:import (org.apache.beam.sdk.testing PAssert)))
 
