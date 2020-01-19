@@ -31,13 +31,15 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 * **Avoid Macros**
     * Limit macro infection. Most thurber constructions are macro-less.
 * **No AOT**
-* **"Bypass-able" API**
-    * No API lock-in. Pipelines can be composed of Clojure/thurber and Java 
-      transforms. Incrementally refactor your pipeline to Clojure or back 
-      to Java.
+* **No Lock-in**
+    * Pipelines can be composed of Clojure/thurber and Java transforms. 
+      Incrementally refactor your pipeline to Clojure or back to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
       is performant and works cleanly with Beam, embrace it.
+* **Completeness**
+    * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
+      Output Tags, etc.)
 * **Performance**
     * Be finely tuned for data streaming 
 

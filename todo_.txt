@@ -6,7 +6,9 @@
 
 * unit test all other demos
 
-* bump beam release
+* bump to latest beam release
+
+* replace Guide with separate Walkthrough page
 
 * UnboundedSeqSource needed? or facade beam's own facilities
 
