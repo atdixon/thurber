@@ -1,4 +1,4 @@
-(defproject com.github.atdixon/thurber "0.0.2-alpha7"
+(defproject com.github.atdixon/thurber "0.0.2-alpha8-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
   :description "thurber: Apache Beam on Clojure"
   :url "https://github.com/atdixon/thurber"
