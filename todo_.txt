@@ -7,6 +7,7 @@
 * unit test all other demos
 
 * extensive combine tests
+* extensive named steps tests
 
 * bump to latest beam release
 
@@ -71,3 +72,12 @@
     * ensure eg 0.0.2-alpha2-SNAPSHOT, then
     * lein javac (sanity check compile), lein test, then
     * lein release :alpha
+
+
+snippets
+---
+(defn- dump* [pipeline]
+  (.traverseTopologically ^Pipeline example-pipeline
+    (proxy [Pipeline$PipelineVisitor$Defaults] []
+      (enterCompositeTransform [n] (println n) (proxy-super enterCompositeTransform n))
+      (visitPrimitiveTransform [n] (println n) (proxy-super visitPrimitiveTransform n)))))

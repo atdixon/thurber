@@ -233,22 +233,26 @@
               ;;    PCollectionTuple or PCollectionView, eg.
               acc' (if (:th/name nxf)
                      (.apply acc (str prefix (:th/name nxf)) (:th/xform nxf))
-                     (.apply acc (:th/xform nxf)))
+                     (.apply acc (str prefix (.getName (:th/xform nxf))) (:th/xform nxf)))
               explicit-coder (->coder acc nxf)]
           (when explicit-coder
             (set-coder! acc' explicit-coder)) acc')) input xfs)))
 
 (defn ^PTransform compose [& [xf-or-name :as xfs]]
   (proxy [PTransform] [(when (string? xf-or-name) xf-or-name)]
-    (expand [^PCollection pc]
+    (expand [pc]
       (apply apply! pc (if (string? xf-or-name) (rest xfs) xfs)))))
 
 ;; --
 
-(defn ^PTransform create [coll]
-  (if (map? coll)
-    (-> (Create/of ^Map coll) (.withCoder nippy))
-    (-> (Create/of ^Iterable (seq coll)) (.withCoder nippy))))
+(defn ^PTransform create
+  ([coll] (create nil coll))
+  ([name coll]
+   (cond->>
+     (if (map? coll)
+       (-> (Create/of ^Map coll) (.withCoder nippy))
+       (-> (Create/of ^Iterable (seq coll)) (.withCoder nippy)))
+     name (hash-map :th/name name :th/xform))))
 
 ;; --
 

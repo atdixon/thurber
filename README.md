@@ -113,9 +113,8 @@ notes coming soon.)
 
 First make your pipeline work. Then make it fast. 
 
-Streaming/big data implies hot code paths.
-
-Use Clojure [type hints](https://clojure.org/reference/java_interop#typehints) liberally.
+Streaming/big data implies hot code paths. Use Clojure [type hints](https://clojure.org/reference/java_interop#typehints) 
+liberally within your stream functions.
 
 If deploying to GCP, use [Dataflow profiling](https://medium.com/google-cloud/profiling-dataflow-pipelines-ddbbef07761d)
 to zero in on areas to optimize.

@@ -1,5 +1,8 @@
 (ns walkthrough
-  (:import (org.apache.beam.sdk.transforms GroupByKey Combine)))
+  (:import (org.apache.beam.sdk.io TextIO)
+           (org.apache.beam.sdk.transforms Count Combine)
+           (org.apache.beam.sdk.coders VarLongCoder)
+           (org.apache.beam.sdk.values KV)))
 
 ;; This walkthrough introduces the core concepts of thurber.
 
@@ -9,12 +12,6 @@
 ;; Beam standardizes on Joda time and slf4j logging:
 (require '[clj-time.core :as t]
          '[clojure.tools.logging :as log])
-
-;; It will be common to interop with Beam's Java classes:
-(import 'org.apache.beam.runners.direct.DirectOptions
-        'org.apache.beam.sdk.io.TextIO
-        'org.apache.beam.sdk.values.KV
-        'org.apache.beam.sdk.transforms.Count)
 
 ;;;; PIPELINES
 
@@ -42,7 +39,6 @@
 
 ;; We can also create any Beam Java-based source:
 (def file-source (-> (TextIO/read) (.from "word_count/lorem.txt")))
-
 
 ;;;; SINKS
 
@@ -225,17 +221,78 @@
         (th/combiner #'+))
       #'th/log)))
 
-;; The combine sum, 6, is logged:
-(.run example-pipeline)
+(.run example-pipeline) ;; => logs "6"
 
-;;;;
+;;;; NAMING TRANSFORMS
 
-;; todo optional name,, name prefixes
-;; todo coders!!!
-;; todo ser-fn
+;; thurber and Beam infer sensible transform names when no explicit name
+;; is given, but it is good practice to be explicit when there is potential
+;; for conflicts.
+
+;; `partial`, `filter`, and `create` all support an optional explicit transform
+;; name as a first arg, and `apply!` can be given an optional string that will
+;; be used to prefix every step name.
+
+;; Here is a pipeline that forks with two branches. Even though explicit step
+;; names are duplicated, the prefix supplied to `apply!` will ensure the step
+;; names are unique:
+(def example-pipeline
+  (let [p (th/create-pipeline)]
+    (th/apply! "odd-handling" p
+      (th/create "source-data" [1 2 3])
+      (th/filter "filter-odds" #'odd?)
+      (th/partial "multiply-by-5" #'* 5)
+      #'th/log)
+    (th/apply! "even-handling" p
+      (th/create "source-data" [1 2 3])
+      (th/filter "filter-evens" #'even?)
+      (th/partial "subtract one" #'dec)
+      #'th/log)
+    p))
+
+;; A composite transform (`th/compose`) can be given an optional name:
+(def my-xf (th/compose "inc-and-negate" #'inc #'-))
+
+;;;; CODERS
+;;
+;; By default thurber codes Clojure (and Java-Serializable) elements using the same
+;; de/serializer, high-performance nippy (https://github.com/ptaoussanis/nippy), but
+;; Beam supports an array  of specialized coders, as well as user-defined custom coders,
+;; and thurber is fully compatible here.
+
+;; thurber allows coders to be explicitly specified. Here we code our `data-source`
+;; using Beam's `VarLongCoder` in place of thurber's default nippy coder:
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply!
+      {:th/xform data-source
+       :th/coder (VarLongCoder/of)}
+      #'th/log)))
+
+;; Clojure transform functions can explicitly specify coders in their metadata:
+(defn ^{:th/coder th/nippy-kv} convert-to-kv [element]
+  (KV/of (:color element) element))
+
+;;;; CONTEXT BINDINGS
+
 ;; todo thread-local bindings etc.
 ;; todo   config and custom config
+
+;;;; STATE AND TIMERS
+
 ;; todo state and timer API
-;; todo output tags
+
+;;;; SIDE INPUTS
 ;; todo side inputs
+
+;;;; OUTPUT TAGS
+
+;; todo output tags
+
+;;;; JAVA...
+
+;; todo ser-fn
+
+;;;; thurber.facade
+
 ;; todo facade
