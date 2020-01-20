@@ -69,11 +69,12 @@ INFO thurber - you: 2
       constructions is optional.
 * **No AOT!**
 * **No Lock-in**
-    * Pipelines can be composed of Clojure/thurber and Java transforms. 
+    * Pipelines can be composed of Clojure and Java transforms. 
       Incrementally refactor your pipeline to Clojure or back to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
-      is performant and works cleanly with Beam, encourage it.
+      is performant and works cleanly with Beam, encourage it; facade functions
+      are simple to create and left to your domain implementations.
 * **Completeness**
     * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
       Output Tags, etc.)
