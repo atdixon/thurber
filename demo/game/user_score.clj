@@ -19,8 +19,8 @@
   (KV/of (field elem) (:score elem)))
 
 (defn ->extract-sum-and-score-xf [field]
-  (th/comp* "extract-sum-and-score"
-    {:th/xform (th/partial* #'->field-and-score-kv field)
+  (th/compose "extract-sum-and-score"
+    {:th/xform (th/partial #'->field-and-score-kv field)
      :th/coder th/nippy-kv}
     (Sum/integersPerKey)
     ;; It is not necessary to convert Beam's KV type to Clojure; however
@@ -33,7 +33,7 @@
   (format "user: %s, total_score: %d" k v))
 
 (defn- ->write-to-text-xf [output row-formatter]
-  (th/comp* "write-to-text"
+  (th/compose "write-to-text"
     row-formatter
     (-> (TextIO/write)
       (.to ^String output))))

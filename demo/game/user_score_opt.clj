@@ -56,15 +56,15 @@
   (KV/of (field elem) (:score elem)))
 
 (defn ->extract-sum-and-score-xf [field]
-  (th/comp* "extract-sum-and-score"
-    (th/partial* #'->field-and-score-kv field)
+  (th/compose "extract-sum-and-score"
+    (th/partial #'->field-and-score-kv field)
     (Sum/integersPerKey)))
 
 (defn- ^{:th/coder (StringUtf8Coder/of)} format-row [^KV kv]
   (format "user: %s, total_score: %d" (.getKey kv) (.getValue kv)))
 
 (defn- ->write-to-text-xf [output row-formatter]
-  (th/comp* "write-to-text"
+  (th/compose "write-to-text"
     row-formatter
     (-> (TextIO/write)
       (.to ^String output))))

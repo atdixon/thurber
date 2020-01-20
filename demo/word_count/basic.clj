@@ -25,7 +25,7 @@
 
 ;; A reusable transform.
 (def count-words-xf
-  (th/comp*
+  (th/compose
     "count-words"
     #'extract-words
     #'th/->kv

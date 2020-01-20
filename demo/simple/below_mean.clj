@@ -20,7 +20,7 @@
                     (View/asSingleton))]
     (th/apply!
       data
-      (th/filter* #'below-mean? mean-view)
+      (th/filter #'below-mean? mean-view)
       #'sink*)
     pipeline))
 

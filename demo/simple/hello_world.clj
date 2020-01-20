@@ -14,7 +14,7 @@
      ;;
      ;; Beam functions however can not access local lexical closure and
      ;; should obtain "configuration" either by consult the pipeline's
-     ;; PipelineOptions (via th/*pipeline-options) or by using th/partial*
+     ;; PipelineOptions (via th/*pipeline-options) or by using th/partial
      ;; to explicitly pass serializable args/config to a function.
      ;;
      ;; Here we access our custom config map via th/*custom-config (carried
@@ -22,7 +22,7 @@
      (th/inline
       (fn prefix* [elem]
         (str (:prefix (th/*custom-config)) elem)))
-     #'th/log-elem*)))
+     #'th/log)))
 
 (defn demo! []
   (->

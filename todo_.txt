@@ -57,7 +57,7 @@
 
 * templates support
 
-* docs on ->kv, partial*, #'fn-var/DoFn (!!), coders, etc.
+* docs on ->kv, partial, #'fn-var/DoFn (!!), coders, etc.
 
 * benchmarks
 

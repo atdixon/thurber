@@ -49,28 +49,25 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 
 ```clojure
 (ns try-thurber
-   (:require [thurber :as th]
-             [clojure.string :as str])
-   (:import (org.apache.beam.sdk.io TextIO)))
+  (:require [thurber :as t]
+            [thurber.facade :as tf]
+            [clojure.string :as str]))
 
-(defn- extract-words [sentence]
-  (remove empty? (str/split sentence #"[^\p{L}]+")))
-
-(.run
-    (doto (th/create-pipeline)
-      (th/apply!
-        (-> (TextIO/read)
-          (.from "demo/word_count/lorem.txt"))
-        #'extract-words
-        #'th/->kv
-        (th/count-per-key)
-        (th/inline 
-          (fn format-as-text 
-            [[k v]] (format "%s: %d" k v)))
-        #'th/log-elem*)))
+(->
+  (t/create-pipeline)
+  (t/apply!
+    (tf/read-text-file
+      "demo/word_count/lorem.txt")
+    (tf/fn* extract-words [sentence]
+      (remove empty? (str/split sentence #"[^\p{L}]+")))
+    (tf/count-per-element)
+    (tf/fn* format-as-text
+      [[k v]] (format "%s: %d" k v))
+    (tf/log-sink))
+  t/run!)
 ```
 
-You should see streaming word counts:
+Output:
 
 ```
 ...

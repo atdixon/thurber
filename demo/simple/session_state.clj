@@ -65,7 +65,7 @@
       (->
         (Window/into
           (GlobalWindows.)))
-      (th/partial* #'th/->kv :user)
+      (th/partial #'th/->kv :user)
       {:th/xform #'special*
        :th/timer-fn #'special-timer*
        :th/coder th/nippy}

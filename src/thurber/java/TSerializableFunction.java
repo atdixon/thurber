@@ -7,7 +7,7 @@ import org.apache.beam.sdk.transforms.SerializableFunction;
 
 import java.io.IOException;
 
-public final class TSerializableFunction implements SerializableFunction {
+public final class TSerializableFunction implements SerializableFunction<Object, Object> {
 
     private final Var fn;
     private final Object[] args;

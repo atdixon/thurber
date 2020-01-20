@@ -45,7 +45,7 @@
 
 (defn- ->write-to-text-xf [output row-formatter]
   (let [resource (FileBasedSink/convertToFileResourceIfPossible output)]
-    (th/comp* "write-to-text"
+    (th/compose "write-to-text"
       row-formatter
       (-> (TextIO/write)
         (.to ^FileBasedSink$FilenamePolicy
@@ -62,10 +62,10 @@
         (-> (TextIO/read)
           (.from ^String (:input conf)))
         #'game.user-score/parse-event
-        ;; Use filter* w/ optional partial arguments to filter elements per a
+        ;; Use filter w/ optional partial arguments to filter elements per a
         ;; predicate fn.
-        (th/filter* #'filter-start-time (f/parse min-parser (:start-min conf)))
-        (th/filter* #'filter-end-time (f/parse min-parser (:stop-min conf)))
+        (th/filter #'filter-start-time (f/parse min-parser (:start-min conf)))
+        (th/filter #'filter-end-time (f/parse min-parser (:stop-min conf)))
         ;; Some Beam functions we can use directly by converting a Clojure function
         ;; to a Beam SerializableFunction (via `ser-fn`):
         (WithTimestamps/of (th/ser-fn #'->timestamp))

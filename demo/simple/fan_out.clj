@@ -18,13 +18,13 @@
         even-tag (TupleTag. "even")
         odd-tag (TupleTag. "odd")
         fanned ^PCollectionTuple
-               (th/apply! data (th/partial* #'fan* even-tag odd-tag))]
+               (th/apply! data (th/partial #'fan* even-tag odd-tag))]
     (th/apply!
       (.get fanned "even")
-      (th/partial* #'sink* "even"))
+      (th/partial #'sink* "even"))
     (th/apply!
       (.get fanned "odd")
-      (th/partial* #'sink* "odd"))
+      (th/partial #'sink* "odd"))
     pipeline))
 
 (defn demo! []

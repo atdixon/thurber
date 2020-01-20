@@ -40,7 +40,7 @@
   (let [conf (th/get-custom-config pipeline)]
     (th/apply! pipeline
       (->text-io-xf conf)
-      (th/partial* #'add-timestamp conf)
+      (th/partial #'add-timestamp conf)
       ;; Here we window into fixed windows. There is no need for Thurber to
       ;; to try to sugar-coat Beam window configuration; Clojure's Java interop
       ;; works perfectly fine in this case.

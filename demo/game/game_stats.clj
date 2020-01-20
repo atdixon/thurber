@@ -34,7 +34,7 @@
                               (.asSingletonView)))]
     (th/apply!
       sum-scores
-      (th/filter*
+      (th/filter
         "process-and-filter" #'filter-user-scores global-mean-score))))
 
 (defn- ->spammers-view [fixed-window-duration ^PCollection user-events]
@@ -97,7 +97,7 @@
         user-scores (th/apply!
                       raw-events
                       ;; th/->kv is quite powerful.
-                      (th/partial* "extract-user-score" #'th/->kv :user :score))
+                      (th/partial "extract-user-score" #'th/->kv :user :score))
         spammers-view (->spammers-view (:fixed-window-duration custom-conf) user-scores)]
 
     (th/apply! raw-events
@@ -106,7 +106,7 @@
        (Window/into
          (FixedWindows/of
            (Duration/standardMinutes (:fixed-window-duration custom-conf))))}
-      (th/filter*
+      (th/filter
         (th/inline
           (fn filter-out-spammers [^PCollectionView spammers-view game-event]
             (let [spammers (.sideInput (th/*process-context) spammers-view)]

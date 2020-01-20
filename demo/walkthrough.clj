@@ -51,7 +51,7 @@
 
 ;; We can simply sink to our logging system. This is often useful
 ;; for testing:
-(def log-sink #'th/log-elem*)
+(def log-sink #'th/log)
 
 
 ;;;; COMPOSING PIPELINES
@@ -126,12 +126,12 @@
 ;; single element, the element being processed. However thurber
 ;; supports multi-arity ParDo functions where the last arg is
 ;; the processing element and prior (serializable) args are
-;; bound early using th/partial*:
+;; bound early using th/partial:
 
 (def simple-pipeline
   (doto (th/create-pipeline)
     (th/apply! data-source
-      (th/partial* #'* 4)
+      (th/partial #'* 4)
       log-sink)))
 
 ;; This logs 4, 8, and 12:
@@ -172,8 +172,8 @@
   (doto (th/create-pipeline)
     (th/apply! data-source
       ;; KV elements can be constructed by any ParDo function;
-      ;; however thurber's th/->kv, with th/partial*, is quite useful:
-      (th/partial* #'th/->kv
+      ;; however thurber's th/->kv, with th/partial, is quite useful:
+      (th/partial #'th/->kv
         (th/inline
           (fn classify-even-or-odd [v]
             (if (even? v) :even :odd))))
@@ -186,10 +186,10 @@
 
 ;;;; COMPOSITE TRANSFORMS
 
-;; Composite transforms can be created with `comp*`:
+;; Composite transforms can be created with `compose`:
 (def count-even-and-odd-xf
-  (th/comp* "count-even-and-odd"
-    (th/partial* #'th/->kv #'classify-even-or-odd)
+  (th/compose "count-even-and-odd"
+    (th/partial #'th/->kv #'classify-even-or-odd)
     (Count/perKey)
     ;; We can (optionally!) use kv->clj to convert Beam's Java KV values
     ;; to Clojure (i.e., MapEntry) values. This allows for downstream
@@ -223,7 +223,7 @@
       data-source
       (Combine/globally
         (th/combiner #'+))
-      #'th/log-elem*)))
+      #'th/log)))
 
 ;; The combine sum, 6, is logged:
 (.run example-pipeline)
@@ -238,3 +238,4 @@
 ;; todo state and timer API
 ;; todo output tags
 ;; todo side inputs
+;; todo facade

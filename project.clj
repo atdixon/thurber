@@ -11,6 +11,8 @@
   :java-source-paths ["src"]
   :javac-options ["-target" "1.8" "-source" "1.8"]
 
+  :pedantic? false
+
   :dependencies
   [[camel-snake-kebab "0.4.1"]
    [clj-time "0.15.2"]

@@ -32,7 +32,7 @@
           (th/apply!
             (th/create game-events)
             #'game.user-score/parse-event
-            (th/filter* #'game.hourly-team-score/filter-start-time
+            (th/filter #'game.hourly-team-score/filter-start-time
               start-min-ts)
             (th/inline
               (fn map-elems* [event]

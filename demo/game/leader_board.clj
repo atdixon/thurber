@@ -21,7 +21,7 @@
 ;; --
 
 (defn ->game-events-xf [topic]
-  (th/comp* "game-events"
+  (th/compose "game-events"
     (-> (PubsubIO/readStrings)
       (.withTimestampAttribute GameConstants/TIMESTAMP_ATTRIBUTE)
       (.fromTopic topic))
@@ -30,7 +30,7 @@
 ;; --
 
 (defn- ->calculate-team-scores-xf [{:keys [team-window-duration allowed-lateness]}]
-  (th/comp* "calculate-team-scores"
+  (th/compose "calculate-team-scores"
     {:th/name "leaderboard-team-fixed-windows"
      :th/xform
      (-> (Window/into (FixedWindows/of (Duration/standardMinutes team-window-duration)))
@@ -70,7 +70,7 @@
 ;; --
 
 (defn- ->calculate-user-scores-xf [{:keys [allowed-lateness]}]
-  (th/comp* "calculate-user-scores"
+  (th/compose "calculate-user-scores"
     {:th/name "leaderboard-user-global-windows"
      :th/xform
      (-> (Window/into (GlobalWindows.))
@@ -100,7 +100,7 @@
 
 (defn ->write-to-big-query-xf [xf-name project-id dataset-id table-name
                                ^TableSchema table-row-schema table-row-fn]
-  (th/comp* xf-name
+  (th/compose xf-name
     table-row-fn
     (-> (BigQueryIO/writeTableRows)
       (.to (doto (TableReference.)
