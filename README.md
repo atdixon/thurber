@@ -10,36 +10,13 @@
 
 _This is alpha software. Bleeding-edge and all that. API subject to mood swings._
 
-* [Principles](#principles)
 * [Quickstart](#quickstart)
+* [Project Goals](#project-goals)
 * [Documentation](#documentation)
 * [Demos](#demos)
     * [Word Count](#word-count)
     * [Mobile Gaming Example](#mobile-gaming-example)
 * [Make It Fast](#make-it-fast)
-
-## Principles
-
-* **Enable Clojure**
-    * Bring Clojure's powerful, expressive toolkit (destructuring,
-      immutability, REPL, async tools, etc etc) to Apache Beam.
-* **REPL Friendly**
-    * Build and test your pipelines incrementally in the REPL. 
-    * Learn Beam semantics (windowing, triggering) interactively. 
-* **Avoid Macros**
-    * Limit macro infection. Most thurber constructions are macro-less.
-* **No AOT**
-* **No Lock-in**
-    * Pipelines can be composed of Clojure/thurber and Java transforms. 
-      Incrementally refactor your pipeline to Clojure or back to Java.
-* **Not Afraid of Java Interop**
-    * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
-      is performant and works cleanly with Beam, embrace it.
-* **Completeness**
-    * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
-      Output Tags, etc.)
-* **Performance**
-    * Be finely tuned for data streaming 
 
 ## Quickstart
 
@@ -77,6 +54,31 @@ INFO thurber - pleasure: 7
 INFO thurber - you: 2
 ...
 ```
+
+## Project Goals
+
+* **Enable Clojure**
+    * Bring Clojure's powerful, expressive toolkit (destructuring,
+      immutability, REPL, async tools, etc etc) to Apache Beam.
+* **REPL Oriented**
+    * Functions are idiomatic Clojure functions by default. Build and test
+      pipelines incrementally from the REPL. 
+    * Evaluate/learn Beam semantics (windowing, triggering) interactively.
+* **Avoid Macros**
+    * Limit macro infection. Most thurber constructions are macro-less, use of macro
+      constructions is optional.
+* **No AOT!**
+* **No Lock-in**
+    * Pipelines can be composed of Clojure/thurber and Java transforms. 
+      Incrementally refactor your pipeline to Clojure or back to Java.
+* **Not Afraid of Java Interop**
+    * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
+      is performant and works cleanly with Beam, encourage it.
+* **Completeness**
+    * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
+      Output Tags, etc.)
+* **Performance**
+    * Be finely tuned for data streaming.
 
 ## Documentation
 
