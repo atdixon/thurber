@@ -1,6 +1,6 @@
 (ns walkthrough
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk.transforms Count Combine)
+           (org.apache.beam.sdk.transforms Count Combine GroupByKey)
            (org.apache.beam.sdk.coders VarLongCoder)
            (org.apache.beam.sdk.values KV)))
 
@@ -39,6 +39,7 @@
 
 ;; We can also create any Beam Java-based source:
 (def file-source (-> (TextIO/read) (.from "word_count/lorem.txt")))
+
 
 ;;;; SINKS
 
@@ -122,7 +123,7 @@
 ;; single element, the element being processed. However thurber
 ;; supports multi-arity ParDo functions where the last arg is
 ;; the processing element and prior (serializable) args are
-;; bound early using th/partial:
+;; bound early using `thurber/partial`:
 
 (def simple-pipeline
   (doto (th/create-pipeline)
