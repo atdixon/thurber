@@ -22,27 +22,26 @@
                      :streaming true
                      :custom-config {:my-custom-config-val 5}})
 
-;; The :custom-config key is well-known to thurber and used to provide
-;; dynamic options to pipelines. (More on this later.)
+;; (The :custom-config key is well-known to thurber and used to provide
+;; dynamic options to pipelines. More on this later.)
 
 
 ;;;; SOURCES
 
-;; We can create a source from hard-coded Clojure data. This is often
-;; useful for testing:
+;; We can create a data source from hard-coded Clojure values.
+;; This is often useful for testing:
 (def data-source (th/create [1 2 3]))
 
-;; We can also create any Beam Java-based source:
+;; And of course any Java-based Beam source is valid, as well:
 (def file-source (-> (TextIO/read) (.from "demo/word_count/lorem.txt")))
 
 
 ;;;; SINKS
 
-;; We can create a sink using any of Beam Java-based sink:
+;; Any Java-based Beam sink is thurber-ready:
 (def file-sink (-> (TextIO/write) (.to "word-counts")))
 
-;; We can simply sink to our logging system. This is often useful
-;; for testing:
+;; Or we can sink to our logging system, which is very useful for testing:
 (def log-sink #'th/log)
 
 
@@ -50,25 +49,23 @@
 
 ;; thurber's `apply!` is used to build pipelines.
 
-;; Here we read from our simple hard-coded source and write to our
-;; log sink:
+;; Here is the simplest of thurber pipelines -- it reads from a
+;; source and writes to our log sink:
 (def simplest-pipeline
   (doto (th/create-pipeline)
     (th/apply! data-source log-sink)))
 
-;; Run the pipeline. This will log each input element from the
+;; Try it! This will log each input element from the
 ;; source (1, 2, 3...not necessarily in this order)
 (.run simplest-pipeline)
 
 
 ;;;; ParDo TRANSFORMS
 
-;; The simplest Beam transform is a ParDo ("parallel do").
-
 ;; Here is a simple function:
 (defn double [elem] (+ elem elem))
 
-;; thurber treats Clojure functions as a ParDos automatically:
+;; thurber treats Clojure functions as ParDo functions automatically:
 (def simple-pipeline
   (doto (th/create-pipeline)
     (th/apply! data-source #'double log-sink)))
@@ -79,15 +76,17 @@
 
 ;;;; SERIALIZABLE FUNCTIONS
 
-;; When constructing our pipeline, why did we refer to
+;; When constructing our pipeline above, why did we refer to
 ;; the function's var?
 ;;
 ;;      #'double
 ;;
 ;; Beam distributes functions across the cluster and vars
-;; are serializable. In this case #'double is serialized
-;; and sent to Beam cluster nodes. When the var is deserialized,
-;; thurber ensures that it is rebound to its function.
+;; are serializable.
+;;
+;; In this case #'double is serialized  and sent to Beam cluster nodes.
+;; When the var is deserialized, thurber ensures that it is rebound to
+;; its function.
 
 
 ;;;; INLINE FUNCTIONS
@@ -96,16 +95,14 @@
 ;; namespace. However thurber supports inlining functions,
 ;; which is useful in some cases for readability.
 
-;; thurber's `inline` must be used, which ensures the inline
-;; function is properly serializable. Inlined functions
+;; `thurber/fn*` creates an inline function. Inlined functions
 ;; must be given an explicit name:
 
 (def simple-pipeline
   (doto (th/create-pipeline)
     (th/apply! data-source
-      (th/inline
-        (fn triple [elem]
-          (* elem 3)))
+      (th/fn* triple [elem]
+        (* elem 3))
       log-sink)))
 
 ;; This logs 3, 6, and 9:
@@ -166,9 +163,8 @@
       ;; KV elements can be constructed by any ParDo function;
       ;; however thurber's th/->kv, with th/partial, is quite useful:
       (th/partial #'th/->kv
-        (th/inline
-          (fn classify-even-or-odd [v]
-            (if (even? v) :even :odd))))
+        (th/fn* classify-even-or-odd [v]
+          (if (even? v) :even :odd)))
       (GroupByKey/create)
       log-sink)))
 
@@ -194,10 +190,9 @@
     (th/apply!
       data-source
       count-even-and-odd-xf
-      (th/inline
-        (fn count-sink [[k v]]
-          (log/infof "There are %d %s numbers."
-            v (name k)))))))
+      (th/fn* count-sink [[k v]]
+        (log/infof "There are %d %s numbers."
+          v (name k))))))
 
 ;; This logs "There are 2 odd numbers."
 ;;           "There are 1 even numbers."
@@ -293,9 +288,8 @@
     (th/apply!
       data-source
       (th/filter
-        (th/inline
-          (fn just-count-me [elem]
-            (= elem (-> (th/*custom-config) :count-me)))))
+        (th/fn* just-count-me [elem]
+          (= elem (-> (th/*custom-config) :count-me))))
       (Combine/globally (th/combiner #'+))
       #'filter-on-time-panes
       #'th/log)))
@@ -380,9 +374,8 @@
     (th/apply!
       (th/create (remove odd? (range 10)))
       (WithTimestamps/of (th/ser-fn
-                           (th/inline
-                             (fn to-instant [n]
-                               (Instant. n)))))
+                           (th/fn* to-instant [n]
+                             (Instant. n))))
       (WithKeys/of "global")
       {:th/xform #'emit-missing
        :th/timer-fn #'emit-missing-timer
