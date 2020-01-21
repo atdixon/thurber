@@ -6,9 +6,9 @@
 
 [Apache Beam](https://beam.apache.org/) and 
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
-~~steroids~~ Clojure.
+~~steroids~~ Clojure. The [walkthrough](./demo/walkthrough.clj) explains everything.
 
-_This is alpha software. Bleeding-edge and all that. API subject to mood swings._
+_This is alpha software. API subject to mood swings._
 
 * [Quickstart](#quickstart)
 * [Project Goals](#project-goals)
@@ -65,9 +65,11 @@ INFO thurber - you: 2
     * Develop and test pipelines incrementally from the REPL. 
     * Evaluate/learn Beam semantics (windowing, triggering) interactively.
 * **Avoid Macros**
-    * Limit macro infection. Most thurber constructions are macro-less, use of macro
-      constructions is optional.
-* **No AOT!**
+    * Limit macro infection. Most thurber constructions are macro-less, use of any
+      thurber macro constructions (like inline functions) is optional.
+* **No AOT**
+    * Fully dynamic experience. Reload namespaces at whim. thurber's dependency on 
+      Beam, Clojure, etc versions are completely dynamic. No AOT hell. Etc.
 * **No Lock-in**
     * Pipelines can be composed of Clojure and Java transforms. 
       Incrementally refactor your pipeline to Clojure or back to Java.
