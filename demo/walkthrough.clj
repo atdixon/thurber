@@ -13,7 +13,7 @@
 ;; Create a default Beam pipeline:
 (th/create-pipeline)
 
-;; Create a Beam pipeline from command-line arguments:
+;; Create a Beam pipeline from command-line arguments (Beam standard):
 (th/create-pipeline ["--targetParallelism=7" "--jobName=thurber-walkthrough"])
 
 ;; Create a Beam pipeline from args provided as a Clojure map (skeleton-cased
