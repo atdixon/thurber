@@ -130,7 +130,7 @@
 ;;;; MULTIPLE OUTPUTS
 
 ;; A ParDo function can emit zero, one, or many values downstream.
-;; When a seq (per Clojure's seq?) is returned from a function, all
+;; When a seq (per Clojure's `seq?`) is returned from a function, all
 ;; values are emitted individually downstream.
 ;;
 ;; Lazy sequences are common when emitting large streams:
@@ -153,8 +153,8 @@
 
 ;; Most Beam pipelines require "shuffle" steps where related data is
 ;; gathered together by some value (i.e, by a "key" value). Before
-;; a shuffle (e.g., GroupByKey) can occur, Beam requires the elements
-;; to exist in KV form (as org.apache.beam.sdk.values.KV instances):
+;; a shuffle (e.g., `GroupByKey`) can occur, Beam requires the elements
+;; to exist in KV form (as `org.apache.beam.sdk.values.KV` instances):
 
 ;; Let's group values in our source stream by whether they are even or odd:
 (def example-pipeline
