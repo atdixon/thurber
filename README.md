@@ -26,22 +26,21 @@ _This is alpha software. Bleeding-edge and all that. API subject to mood swings.
 
 ```clojure
 (ns try-thurber
-  (:require [thurber :as t]
-            [thurber.facade :as tf]
-            [clojure.string :as str]))
+  (:require [thurber :as th]
+            [thurber.facade-ex :refer :all]))
 
 (->
-  (t/create-pipeline)
-  (t/apply!
-    (tf/read-text-file
+  (th/create-pipeline)
+  (th/apply!
+    (read-text-file
       "demo/word_count/lorem.txt")
-    (tf/fn* extract-words [sentence]
-      (remove empty? (str/split sentence #"[^\p{L}]+")))
-    (tf/count-per-element)
-    (tf/fn* format-as-text
+    (th/fn* extract-words [sentence]
+      (remove empty? (.split sentence "[^\\p{L}]+")))
+    (count-per-element)
+    (th/fn* format-as-text
       [[k v]] (format "%s: %d" k v))
-    (tf/log-sink))
-  t/run!)
+    (log-sink))
+  (th/run-pipeline!))
 ```
 
 Output:
@@ -61,8 +60,9 @@ INFO thurber - you: 2
     * Bring Clojure's powerful, expressive toolkit (destructuring,
       immutability, REPL, async tools, etc etc) to Apache Beam.
 * **REPL Oriented**
-    * Functions are idiomatic Clojure functions by default. Build and test
-      pipelines incrementally from the REPL. 
+    * Functions are idiomatic/pure Clojure functions by default. (E.g., lazy
+      sequences are supported making iterative event output optional/unnecessary, etc.) 
+    * Develop and test pipelines incrementally from the REPL. 
     * Evaluate/learn Beam semantics (windowing, triggering) interactively.
 * **Avoid Macros**
     * Limit macro infection. Most thurber constructions are macro-less, use of macro
@@ -73,8 +73,8 @@ INFO thurber - you: 2
       Incrementally refactor your pipeline to Clojure or back to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
-      is performant and works cleanly with Beam, encourage it; facade functions
-      are simple to create and left to your domain implementations.
+      is performant and works cleanly with Beam's fluent API, encourage it; facade 
+      functions are simple to create and left to your own domain-specific implementations.
 * **Completeness**
     * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
       Output Tags, etc.)

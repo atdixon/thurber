@@ -1,17 +1,12 @@
 (ns walkthrough
+  (:require [thurber :as th]
+            [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk.transforms Count Combine GroupByKey)
+           (org.apache.beam.sdk.transforms Count Combine GroupByKey WithTimestamps WithKeys View Mean FlatMapElements SerializableFunction)
            (org.apache.beam.sdk.coders VarLongCoder)
-           (org.apache.beam.sdk.values KV)))
-
-;; This walkthrough introduces the core concepts of thurber.
-
-;; The thurber namespace contains the public API.
-(require '[thurber :as th])
-
-;; Beam standardizes on Joda time and slf4j logging:
-(require '[clj-time.core :as t]
-         '[clojure.tools.logging :as log])
+           (org.apache.beam.sdk.values KV PCollectionView TypeDescriptors)
+           (org.apache.beam.sdk.transforms.windowing PaneInfo$Timing)
+           (org.joda.time Duration Instant)))
 
 ;;;; PIPELINES
 
@@ -24,7 +19,7 @@
 ;; Create a Beam pipeline from args provided as a Clojure map (skeleton-cased
 ;; keywords will map to Beam's camelCased option names):
 (th/create-pipeline {:target-parallelism 7
-                     :job-name "thurber-walkthrough"
+                     :streaming true
                      :custom-config {:my-custom-config-val 5}})
 
 ;; The :custom-config key is well-known to thurber and used to provide
@@ -38,7 +33,7 @@
 (def data-source (th/create [1 2 3]))
 
 ;; We can also create any Beam Java-based source:
-(def file-source (-> (TextIO/read) (.from "word_count/lorem.txt")))
+(def file-source (-> (TextIO/read) (.from "demo/word_count/lorem.txt")))
 
 
 ;;;; SINKS
@@ -276,24 +271,178 @@
 
 ;;;; CONTEXT BINDINGS
 
-;; todo thread-local bindings etc.
-;; todo   config and custom config
+;; thurber ParDo functions return value(s) to be emitted downstream but
+;; some complicated ParDo functions need access to element timestamps,
+;; windows and pane information, etc.
+;;
+;; thurber exposes all of beams per-element context information via thread-local
+;; bindings (for performance, thurber does not use clojure dynamic bindings).
+;;
+;; Here is a ParDo that only emits the current element only if the firing pane
+;; is on time:
+(defn- filter-on-time-panes [elem]
+  (let [pane-timing (-> (th/*process-context) (.pane) (.getTiming))]
+    (when (= pane-timing PaneInfo$Timing/ON_TIME)
+      elem)))
+
+;; thurber supports dynamic "custom config" input to a pipeline.
+;; Beam's PipelineOptions are available to ParDo functions via
+;; `thurber/*pipeline-options` and custom config via `thurber/*custom-config`:
+(def example-pipeline
+  (doto (th/create-pipeline {:custom-config {:count-me 2}})
+    (th/apply!
+      data-source
+      (th/filter
+        (th/inline
+          (fn just-count-me [elem]
+            (= elem (-> (th/*custom-config) :count-me)))))
+      (Combine/globally (th/combiner #'+))
+      #'filter-on-time-panes
+      #'th/log)))
+
+;;;; SIDE INPUTS
+
+;; Side inputs are used as additional inputs to ParDo transforms.
+;; As `PCollectionView`s are serializable we can pass them as `partial`
+;; args to any ParDo Clojure function:
+(defn- above-mean? [^PCollectionView mean-view elem]
+  (let [mean (.sideInput (th/*process-context) mean-view)]
+    (> elem mean)))
+
+;; This pipeline use a side view to counts all values in our data stream
+;; that are above the overall mean:
+(def example-pipeline
+  (let [pipeline (th/create-pipeline)
+        data (th/apply! pipeline
+               (th/create (range 1 100)))
+        mean-view (th/apply! "mean-view"
+                    data
+                    (Mean/globally)
+                    (View/asSingleton))]
+    (th/apply!
+      data
+      (th/filter #'above-mean? mean-view)
+      (Count/globally)
+      #'th/log)
+    pipeline))
+
+;; This logs "49":
+(.run example-pipeline)
 
 ;;;; STATE AND TIMERS
 
-;; todo state and timer API
+;; transforms annotated with `:th/stateful` can access a Beam value state and bag
+;; state via `(th/*value-state)` and `(th/*bag-state)`
 
-;;;; SIDE INPUTS
-;; todo side inputs
+;; An implementation of group-into-batches leverages both value and bag states:
+(defn- ^{:th/stateful true :th/coder th/nippy} group-into-batches [batch-size ^KV elem]
+  (let [counter (-> (.read (th/*value-state)) (or 0) inc)
+        _ (.write (th/*value-state) counter)]
+    (.add (th/*bag-state) (.getValue elem))
+    (when (<= batch-size counter)
+      (.output (th/*process-context) (vec (.read (th/*bag-state))))
+      (.write (th/*value-state) 0)
+      (.clear (th/*bag-state)))))
 
-;;;; OUTPUT TAGS
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply!
+      (th/create (range 15))
+      (WithKeys/of "global")
+      (th/partial #'group-into-batches 5)
+      #'th/log)))
 
-;; todo output tags
+;; This logs three batches of five elements each:
+(.run example-pipeline)
 
-;;;; JAVA...
+;; Of course the above implementation won't emit any incomplete last batch. To fix
+;; this we would need to use a Beam Timer.
 
-;; todo ser-fn
+;; For a simpler example, suppose we wanted to use a Beam Timer to ensure our event
+;; stream has an element every millisecond; for ever millisecond that we do not have
+;; an element in our event stream, we will emit a marker "<missing>" value:
+(defn- emit-missing-timer [^Instant stop-time]
+  (when (.isBefore (.timestamp (th/*timer-context)) stop-time)
+    (-> (th/*event-timer)
+      (.offset (Duration/millis 1))
+      (.setRelative)))
+  "<missing>")
 
-;;;; thurber.facade
+;; When we have an element, we will reset the timer to the next millisecond:
+(defn- emit-missing [^KV elem]
+  (-> (th/*event-timer)
+    (.offset (Duration/millis 1))
+    (.setRelative))
+  (.getValue elem))
 
-;; todo facade
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply!
+      (th/create (remove odd? (range 10)))
+      (WithTimestamps/of (th/ser-fn
+                           (th/inline
+                             (fn to-instant [n]
+                               (Instant. n)))))
+      (WithKeys/of "global")
+      {:th/xform #'emit-missing
+       :th/timer-fn #'emit-missing-timer
+       :th/timer-params [(Instant. 10)]
+       :th/coder th/nippy}
+      #'th/log)))
+
+;; This logs 0, "<missing>", 2, "<missing>", 4, "<missing>", 6,
+;;   "<missing>", 8, "<missing>"  in some order:
+(.run example-pipeline)
+
+;;;; JAVA INTEROP
+
+;; thurber directly supports any Java-based transform, so transforms from Beam's SDK
+;; or other Java libraries are thurber-ready. In some cases these transforms are configured
+;; with `SerializableFunction`, `SerializableBiFunction`; thurber allows a Clojure function
+;; to be converted to one of these types to facilitate interop w/ Java-based transforms.
+;;
+;; `ser-fn` converts a Clojure function to a `SerializableFunction` or `SerializableBiFunction`
+;; depending on the arity of the provided function:
+
+(defn- multiply-element [n]
+  (repeat n n))
+
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply! data-source
+      (-> (FlatMapElements/into
+            (TypeDescriptors/longs))
+        (.via
+          (th/ser-fn #'multiply-element)))
+      #'th/log)))
+
+(.run example-pipeline) ;; logs 1, 2, 2, 3, 3, 3 in some order
+
+;;;; FACADE
+
+;; The `thurber` namespace attempts to provide a minimal yet fully capable and expressive
+;; set of facilities to build Beam pipelines using first-class Clojure constructs.
+
+;; Some users will find Java interop with Beam's fluent APIs a bit prickly and will want
+;; to write Clojurey versions of transform builders, etc; we leave such "facade" functions
+;; to user; these are easy to write and tend to be domain-specific.
+
+;; As an example of what this might look like, consider word count here written with
+;; Clojurey transform builders:
+
+(require '[thurber.facade-ex :refer [read-text-file count-per-element]])
+
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply!
+      (read-text-file
+        "demo/word_count/lorem.txt")
+      (th/fn* extract-words [^String sentence]
+        (remove empty? (.split sentence "[^\\p{L}]+")))
+      (count-per-element)
+      (th/fn* format-as-text
+        [[k v]] (format "%s: %d" k v))
+      log-sink)))
+
+;; This logs all word counts from lorem.txt:
+(.run example-pipeline)

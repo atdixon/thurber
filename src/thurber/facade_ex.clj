@@ -1,9 +1,11 @@
-(ns thurber.facade
+(ns thurber.facade-ex
   (:require [thurber :as th])
   (:import (org.apache.beam.sdk.io TextIO)
            (org.apache.beam.sdk.transforms Count)))
 
-;;;; EXPERIMENTAL ;;;;
+;;;; EXAMPLE ;;;;
+
+;;; see demo/walkthrough.clj
 
 (defn read-text-file [f]
   (.. TextIO (read)
@@ -14,10 +16,6 @@
     #'th/->kv
     (.. Count (perKey))
     #'th/kv->clj))
-
-(defmacro fn* [& body]
-  `(th/inline
-     (fn ~@body)))
 
 (defn log-sink []
   #'th/log)

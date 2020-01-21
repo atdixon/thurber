@@ -6,6 +6,7 @@ import clojure.lang.ISeq;
 import clojure.lang.RT;
 import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.state.BagState;
 import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
@@ -37,7 +38,7 @@ public final class TDoFn extends DoFn<Object, Object> {
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window) {
-        execute(fn, args, options, context, window, null, null, null);
+        execute(fn, args, options, context, window, null, null, null, null);
     }
 
     // --
@@ -51,10 +52,11 @@ public final class TDoFn extends DoFn<Object, Object> {
                         @Nullable ProcessContext processContext,
                         BoundedWindow window,
                         @Nullable ValueState<Object> state,
+                        @Nullable BagState<Object> bagState,
                         @Nullable Timer timer,
                         @Nullable OnTimerContext timerContext) {
         context.set(new TDoFnContext(
-            options, processContext, window, state, timer, timerContext));
+            options, processContext, window, state, bagState, timer, timerContext));
         try {
             @Nullable final Object rv;
             if (processContext == null) {

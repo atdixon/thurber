@@ -5,7 +5,7 @@
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy]
             [clojure.tools.logging :as log])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction Filter SerializableBiFunction)
            (java.util Map)
            (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
@@ -15,7 +15,7 @@
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
-           (org.apache.beam.sdk.state ValueState Timer)))
+           (org.apache.beam.sdk.state ValueState Timer BagState)))
 
 ;; --
 
@@ -53,10 +53,10 @@
     (->> (.getCustomConfig ^TOptions (.as obj TOptions))
       (into {}) walk/keywordize-keys)))
 
-(defn ^PipelineResult run! [p]
+(defn ^PipelineResult run-pipeline! [p]
   (if (instance? Pipeline p)
     (.run ^Pipeline p)
-    (run! (.getPipeline p))))
+    (run-pipeline! (.getPipeline p))))
 
 ;; --
 
@@ -110,6 +110,7 @@
 (defn ^DoFn$ProcessContext *process-context [] (.-processContext ^TDoFnContext (.get tl-context)))
 (defn ^BoundedWindow *element-window [] (.-elementWindow ^TDoFnContext (.get tl-context)))
 (defn ^ValueState *value-state [] (.-valueState ^TDoFnContext (.get tl-context)))
+(defn ^BagState *bag-state [] (.-bagState ^TDoFnContext (.get tl-context)))
 (defn ^Timer *event-timer [] (.-eventTimer ^TDoFnContext (.get tl-context)))
 (defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TDoFnContext (.get tl-context)))
 
@@ -123,8 +124,14 @@
          (vector? (first (nnext fn-form)))]}
   (let [name (second fn-form)
         args (first (nnext fn-form))]
-    (intern *ns* (with-meta name {:arglists [args]}) (eval fn-form))
+    (intern *ns* (with-meta name
+                   (merge (into {} (map (fn [[k v]] [k (eval v)]))
+                            (meta fn-form)) {:arglists [args]})) (eval fn-form))
     `(intern ~*ns* '~name)))
+
+(defmacro fn* [& body]
+  `(inline
+     (fn ~@body)))
 
 ;; --
 
@@ -157,21 +164,27 @@
   (when (apply pred-fn args)
     (last args)))
 
-(defn ^PTransform filter [pred-var-or-name & args]
-  (if (string? pred-var-or-name)
-    {:th/name pred-var-or-name
-     :th/xform #'filter-impl
-     :th/params args}
-    {:th/name (format "filter:%s" (var->name pred-var-or-name))
-     :th/xform #'filter-impl
-     :th/params (conj args pred-var-or-name)}))
+(defn ^PTransform filter [pred-var-ser-fn-or-name & args]
+  (if (string? pred-var-ser-fn-or-name)
+    (if (instance? SerializableFunction (first args))
+      {:th/name pred-var-ser-fn-or-name
+       :th/xform (Filter/by ^SerializableFunction (first args))}
+      {:th/name pred-var-ser-fn-or-name
+       :th/xform #'filter-impl
+       :th/params args})
+    (if (instance? SerializableFunction pred-var-ser-fn-or-name)
+      {:th/name pred-var-ser-fn-or-name
+       :th/xform (Filter/by ^SerializableFunction pred-var-ser-fn-or-name)}
+      {:th/name (format "filter:%s" (var->name pred-var-ser-fn-or-name))
+       :th/xform #'filter-impl
+       :th/params (conj args pred-var-ser-fn-or-name)})))
 
 (defn ser-fn [fn-var & args]
   (case (apply max
           (clojure.core/filter #{1 2}
             (map count (:arglists (meta fn-var)))))
     1 ^SerializableFunction (TSerializableFunction. fn-var args)
-    2 ^TSerializableBiFunction (TSerializableBiFunction. fn-var args)))
+    2 ^SerializableBiFunction (TSerializableBiFunction. fn-var args)))
 
 ;; --
 
@@ -203,7 +216,7 @@
                                                   (->> ^PCollectionTuple pcoll-or-tuple
                                                     (.getAll)
                                                     (.values)
-                                                    (run! #(.setCoder ^PCollection % coder)))
+                                                    (clojure.core/run! #(.setCoder ^PCollection % coder)))
                                                   pcoll-or-tuple)))
 
 (defn- normalize-xf
@@ -214,7 +227,8 @@
      (keyword? xf) (normalize-xf (partial (str xf) #'kw-impl xf) override)
      (map? xf) (normalize-xf (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
      (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder :th/inherit-or-nippy}
-                              (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-params :th/stateful]) override)]
+                              (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-fn :th/timer-params
+                                                      :th/stateful]) override)]
                  (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/timer-params normal) (:th/stateful normal)
                                            (:th/timer-fn normal)))))))
 
@@ -285,13 +299,13 @@
 
 (defn log
   ([elem] (log :info elem))
-  ([level elem] (log/logp level elem)))
+  ([level elem] (log/logp level elem) elem))
 
 (defn log-verbose
   ([elem] (log-verbose :info elem))
   ([level elem] (log/logf level "%s @ %s ∈ %s ∈ %s" elem
                   (.timestamp (*process-context))
                   (.pane (*process-context))
-                  (*element-window))))
+                  (*element-window)) elem))
 
 ;; --
