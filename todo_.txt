@@ -4,6 +4,9 @@
     impl stateful game example;
     unit test via redefs
 
+* KafkaIO
+    how to offer as optional dep
+
 * unit test all other demos
 
 * extensive combine tests
