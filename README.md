@@ -31,6 +31,7 @@ _This is alpha software. API subject to mood swings._
 
 (->
   (th/create-pipeline)
+
   (th/apply!
     (read-text-file
       "demo/word_count/lorem.txt")
@@ -40,6 +41,7 @@ _This is alpha software. API subject to mood swings._
     (th/fn* format-as-text
       [[k v]] (format "%s: %d" k v))
     (log-sink))
+
   (th/run-pipeline!))
 ```
 
