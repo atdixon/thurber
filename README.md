@@ -77,7 +77,7 @@ INFO thurber - you: 2
       Incrementally refactor your pipeline to Clojure or back to Java.
 * **Not Afraid of Java Interop**
     * Wherever Clojure's [Java Interop](https://clojure.org/reference/java_interop) 
-      is performant and works cleanly with Beam's fluent API, encourage it; facade 
+      is performant and works cleanly with Beam's fluent API, encourage it; facade/sugar 
       functions are simple to create and left to your own domain-specific implementations.
 * **Completeness**
     * Support all Beam capabilities (Transforms, State &amp; Timers, Side Inputs,
