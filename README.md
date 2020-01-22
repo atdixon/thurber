@@ -8,7 +8,7 @@
 [Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
 ~~steroids~~ Clojure. The [walkthrough](./demo/walkthrough.clj) explains everything.
 
-_This is alpha software. API subject to mood swings._
+_This is alpha software. Watch RELEASE NOTES carefully. API subject to mood swings._
 
 * [Quickstart](#quickstart)
 * [Project Goals](#project-goals)
