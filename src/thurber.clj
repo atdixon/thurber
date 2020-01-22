@@ -120,14 +120,18 @@
 
 (defmacro inline [fn-form]
   {:pre [(= #'clojure.core/fn (resolve (first fn-form)))
-         (symbol? (second fn-form))
-         (vector? (first (nnext fn-form)))]}
-  (let [name (second fn-form)
-        args (first (nnext fn-form))]
-    (intern *ns* (with-meta name
+         (symbol? (second fn-form))]}
+  (let [name-sym (second fn-form)
+        name (name name-sym)
+        arglists (if (vector? (first (nnext fn-form)))
+                   [(first (nnext fn-form))]
+                   (into [] (map first (nnext fn-form))))]
+    (intern *ns* (with-meta name-sym
                    (merge (into {} (map (fn [[k v]] [k (eval v)]))
-                            (meta fn-form)) {:arglists [args]})) (eval fn-form))
-    `(intern ~*ns* '~name)))
+                            (meta name-sym)) {:arglists arglists})) (eval fn-form))
+    ;; we use raw symbol here so as to not rewrite metadata of symbol
+    ;; interned while compiling:
+    `(intern ~*ns* (symbol ~name))))
 
 (defmacro fn* [& body]
   `(inline
@@ -246,8 +250,8 @@
               ;; Take care here. acc' may commonly be PCollection but can also be
               ;;    PCollectionTuple or PCollectionView, eg.
               acc' (if (:th/name nxf)
-                     (.apply acc (str prefix (:th/name nxf)) (:th/xform nxf))
-                     (.apply acc (str prefix (.getName (:th/xform nxf))) (:th/xform nxf)))
+                     (.apply acc (str prefix ":" (:th/name nxf)) (:th/xform nxf))
+                     (.apply acc (str prefix ":" (.getName (:th/xform nxf))) (:th/xform nxf)))
               explicit-coder (->coder acc nxf)]
           (when explicit-coder
             (set-coder! acc' explicit-coder)) acc')) input xfs)))

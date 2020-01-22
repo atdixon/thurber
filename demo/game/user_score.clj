@@ -15,13 +15,12 @@
     (catch NumberFormatException e
       (log/warnf "parse error on %s, %s" elem (.getMessage e)))))
 
-(defn- ->field-and-score-kv [field elem]
+(defn- ^{:th/coder th/nippy-kv} ->field-and-score-kv [field elem]
   (KV/of (field elem) (:score elem)))
 
 (defn ->extract-sum-and-score-xf [field]
   (th/compose "extract-sum-and-score"
-    {:th/xform (th/partial #'->field-and-score-kv field)
-     :th/coder th/nippy-kv}
+    (th/partial #'->field-and-score-kv field)
     (Sum/integersPerKey)
     ;; It is not necessary to convert Beam's KV type to Clojure; however
     ;; doing so allows us to employ Clojure destructuring downstream.

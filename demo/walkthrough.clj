@@ -73,6 +73,17 @@
 ;; This logs 2 and 4 and 6 in some order:
 (.run simple-pipeline)
 
+;; Even keywords are coerced to ParDo transforms:
+(def simple-pipeline-
+  (doto (th/create-pipeline)
+    (th/apply!
+      (th/create [{:name :amy :age 110}
+                  {:name :bob :age 100}])
+      :name
+      log-sink)))
+
+;; This logs :bob and :amy...
+(.run simple-pipeline-)
 
 ;;;; SERIALIZABLE FUNCTIONS
 
@@ -237,7 +248,7 @@
     (th/apply! "even-handling" p
       (th/create "source-data" [1 2 3])
       (th/filter "filter-evens" #'even?)
-      (th/partial "subtract one" #'dec)
+      (th/partial "subtract-one" #'dec)
       #'th/log)
     p))
 

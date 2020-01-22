@@ -1,24 +1,11 @@
-* alpha release
-
-* test game-stats dataflow;
-    impl stateful game example;
-    unit test via redefs
-
-* KafkaIO
-    how to offer as optional dep
-
-* unit test all other demos
-
-* extensive combine tests
-* extensive named steps tests
-
+* clojure-ify KafkaIO etc, make optional dep
 * bump to latest beam release
-
-* replace Guide with separate Walkthrough page
-
-* no star suffix th/comp, th/partial, th/filter, th/simple, th/simple-bi ...
-
 * switch to namespaced keys ::th/xform etc
+* th/apply! name should be second arg?
+* instead of kv->clj, support destructuring KVs first-class,
+    including KV<?,Iterable> and KV<?,CoGbkResult>, so that
+    for these latter types we can convert Beam's lazy Iterables
+    to lazy Clojure seqs!!!
 
 * UnboundedSeqSource needed? or facade beam's own facilities
 
@@ -26,8 +13,6 @@
 
 * metrics
 * job name
-
-* CoGroupByKey
 
 * dataflow/gaming docs
     * lein with-profile +demo,+dataflow uberjar
@@ -39,8 +24,6 @@
           --profilingAgentConfiguration='{"APICurated":true}'
     * leaderboard example requires:
         * create topic, dataset, and deploy pipline and running Injector
-
-* keyword is a serializable fn, like fn-vars
 
 * inline comps
 * fujion
@@ -87,7 +70,7 @@
 snippets
 ---
 (defn- dump* [pipeline]
-  (.traverseTopologically ^Pipeline example-pipeline
+  (.traverseTopologically ^Pipeline pipeline
     (proxy [Pipeline$PipelineVisitor$Defaults] []
       (enterCompositeTransform [n] (println n) (proxy-super enterCompositeTransform n))
       (visitPrimitiveTransform [n] (println n) (proxy-super visitPrimitiveTransform n)))))
