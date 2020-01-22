@@ -1,4 +1,4 @@
-(ns thurber.facade-ex
+(ns thurber.sugar
   (:require [thurber :as th])
   (:import (org.apache.beam.sdk.io TextIO)
            (org.apache.beam.sdk.transforms Count)))

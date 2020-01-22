@@ -27,7 +27,7 @@ _This is alpha software. API subject to mood swings._
 ```clojure
 (ns try-thurber
   (:require [thurber :as th]
-            [thurber.facade-ex :refer :all]))
+            [thurber.sugar :refer :all]))
 
 (->
   (th/create-pipeline)

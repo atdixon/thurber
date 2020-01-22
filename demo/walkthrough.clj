@@ -423,7 +423,7 @@
 ;; As an example of what this might look like, consider word count here written with
 ;; Clojurey transform builders:
 
-(require '[thurber.facade-ex :refer [read-text-file count-per-element]])
+(require '[thurber.sugar :refer [read-text-file count-per-element]])
 
 (def example-pipeline
   (doto (th/create-pipeline)
