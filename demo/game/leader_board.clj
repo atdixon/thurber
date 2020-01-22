@@ -29,7 +29,7 @@
 
 ;; --
 
-(defn- ->calculate-team-scores-xf [{:keys [team-window-duration allowed-lateness]}]
+(defn ->calculate-team-scores-xf [{:keys [team-window-duration allowed-lateness]}]
   (th/compose "calculate-team-scores"
     {:th/name "leaderboard-team-fixed-windows"
      :th/xform

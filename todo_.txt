@@ -67,7 +67,12 @@
 
 * benchmarks
 
-* how extensively can proxy be used
+* how extensively can th/proxy be used
+
+* crazy?
+    - support destructuring of KV directly in dofns
+        - ...with :as foo giving KV val?
+        - ...what to do with output emissions?
 
 * https://beam.apache.org/documentation/sdks/java-extensions/
 

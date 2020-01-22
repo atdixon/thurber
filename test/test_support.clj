@@ -18,7 +18,7 @@
     (.run)
     (.waitUntilFinish)))
 
-(defn add-elements! [^TestStream$Builder test-stream & elems]
+(defn ^TestStream$Builder add-elements! [^TestStream$Builder test-stream & elems]
   (.addElements test-stream
     ^TimestampedValue (first elems)
     ^"[Lorg.apache.beam.sdk.values.TimestampedValue;"
