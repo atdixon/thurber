@@ -239,18 +239,17 @@
 ;; names are duplicated, the prefix supplied to `apply!` will ensure the step
 ;; names are unique:
 (def example-pipeline
-  (let [p (th/create-pipeline)]
-    (th/apply! "odd-handling" p
+  (doto (th/create-pipeline)
+    (th/apply! "odd-handling"
       (th/create "source-data" [1 2 3])
       (th/filter "filter-odds" #'odd?)
       (th/partial "multiply-by-5" #'* 5)
       #'th/log)
-    (th/apply! "even-handling" p
+    (th/apply! "even-handling"
       (th/create "source-data" [1 2 3])
       (th/filter "filter-evens" #'even?)
       (th/partial "subtract-one" #'dec)
-      #'th/log)
-    p))
+      #'th/log)))
 
 ;; A composite transform (`th/compose`) can be given an optional name:
 (def my-xf (th/compose "inc-and-negate" #'inc #'-))
@@ -323,8 +322,7 @@
   (let [pipeline (th/create-pipeline)
         data (th/apply! pipeline
                (th/create (range 1 100)))
-        mean-view (th/apply! "mean-view"
-                    data
+        mean-view (th/apply! data "mean-view"
                     (Mean/globally)
                     (View/asSingleton))]
     (th/apply!

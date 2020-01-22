@@ -1,7 +1,9 @@
+* blog: serializing clojure functions -- nod to proxy too
+* github: beam tutorial via thurber
+
 * clojure-ify KafkaIO etc, make optional dep
 * bump to latest beam release
 * switch to namespaced keys ::th/xform etc
-* th/apply! name should be second arg?
 * instead of kv->clj, support destructuring KVs first-class,
     including KV<?,Iterable> and KV<?,CoGbkResult>, so that
     for these latter types we can convert Beam's lazy Iterables

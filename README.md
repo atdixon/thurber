@@ -88,7 +88,8 @@ INFO thurber - you: 2
 
 ## Documentation
 
-* [Code walkthrough](./demo/walkthrough.clj)
+* [Code Walkthrough](./demo/walkthrough.clj)
+* [Beam Tutorial](./doc/beam-tutorial.md)
 
 ## Demos
 
@@ -112,8 +113,9 @@ to Clojure/thurber.
 Beam's [Mobile Gaming Examples](https://beam.apache.org/get-started/mobile-gaming-example/)
 have been ported to Clojure using thurber.
 
-These are fully functional ports but require deployment to GCP Dataflow. (How-to 
-notes coming soon.)
+These are fully functional ports but require deployment to GCP Dataflow. 
+
+(How-to notes coming soon.)
 
 ## Make It Fast
 

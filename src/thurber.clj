@@ -238,12 +238,12 @@
 
 (defn apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...);
-  Answers a PCollection, PCollectionView, ..."
-  [input-or-xf-prefix & xfs]
+  Answers a PCollection, PCollectionView, or so on ..."
+  [input xf-or-prefix & xfs]
   (let [[prefix input xfs]
-        (if (string? input-or-xf-prefix)
-          [input-or-xf-prefix (first xfs) (rest xfs)]
-          ["" input-or-xf-prefix xfs])]
+        (if (string? xf-or-prefix)
+          [xf-or-prefix input xfs]
+          ["" input (conj xfs xf-or-prefix)])]
     (reduce
       (fn [acc xf]
         (let [nxf (normalize-xf xf)

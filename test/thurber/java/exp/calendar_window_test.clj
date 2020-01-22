@@ -40,8 +40,7 @@
                   (Window/into
                     (CalendarDayWindowFn/forTimezoneFn #'->date-time-zone*))})
         output-simple (th/apply! output :color)
-        output-sliding (th/apply! "sliding:"
-                         output
+        output-sliding (th/apply! output "sliding"
                          {:th/name "sliding-window*"
                           :th/xform
                           (Window/into
