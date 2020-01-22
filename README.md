@@ -71,7 +71,8 @@ INFO thurber - you: 2
       thurber macro constructions (like inline functions) is optional.
 * **AOT Nothing**
     * Fully dynamic experience. Reload namespaces at whim. thurber's dependency on 
-      Beam, Clojure, etc versions are completely dynamic. No AOT hell. Etc.
+      Beam, Clojure, etc versions are completely dynamic/floatable. No forced AOT'd 
+      dependencies, Etc.
 * **No Lock-in**
     * Pipelines can be composed of Clojure and Java transforms. 
       Incrementally refactor your pipeline to Clojure or back to Java.
