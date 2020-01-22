@@ -69,7 +69,7 @@ INFO thurber - you: 2
 * **Avoid Macros**
     * Limit macro infection. Most thurber constructions are macro-less, use of any
       thurber macro constructions (like inline functions) is optional.
-* **No AOT**
+* **AOT Nothing**
     * Fully dynamic experience. Reload namespaces at whim. thurber's dependency on 
       Beam, Clojure, etc versions are completely dynamic. No AOT hell. Etc.
 * **No Lock-in**
