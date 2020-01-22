@@ -273,8 +273,11 @@
 ;; thurber exposes all of beams per-element context information via thread-local
 ;; bindings (for performance, thurber does not use clojure dynamic bindings).
 ;;
+;; thurber uses a *single-earmuff to call out these dynamic-bound context
+;; values (as opposed to the *earmuff* convention for dynamic bindings).
+;;
 ;; Here is a ParDo that only emits the current element only if the firing pane
-;; is on time:
+;; is on time; it obtains pane timing information from the current `ProcessContext`:
 (defn- filter-on-time-panes [elem]
   (let [pane-timing (-> (th/*process-context) (.pane) (.getTiming))]
     (when (= pane-timing PaneInfo$Timing/ON_TIME)
