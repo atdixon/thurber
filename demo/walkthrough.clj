@@ -2,7 +2,7 @@
   (:require [thurber :as th]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk.transforms Count Combine GroupByKey WithTimestamps WithKeys View Mean FlatMapElements SerializableFunction)
+           (org.apache.beam.sdk.transforms Count Combine GroupByKey WithTimestamps WithKeys View Mean FlatMapElements)
            (org.apache.beam.sdk.coders VarLongCoder)
            (org.apache.beam.sdk.values KV PCollectionView TypeDescriptors)
            (org.apache.beam.sdk.transforms.windowing PaneInfo$Timing)
@@ -63,12 +63,12 @@
 ;;;; ParDo TRANSFORMS
 
 ;; Here is a simple function:
-(defn double [elem] (+ elem elem))
+(defn times-two [elem] (+ elem elem))
 
 ;; thurber treats Clojure functions as ParDo functions automatically:
 (def simple-pipeline
   (doto (th/create-pipeline)
-    (th/apply! data-source #'double log-sink)))
+    (th/apply! data-source #'times-two log-sink)))
 
 ;; This logs 2 and 4 and 6 in some order:
 (.run simple-pipeline)
@@ -90,12 +90,12 @@
 ;; When constructing our pipeline above, why did we refer to
 ;; the function's var?
 ;;
-;;      #'double
+;;      #'times-two
 ;;
 ;; Beam distributes functions across the cluster and vars
 ;; are serializable.
 ;;
-;; In this case #'double is serialized  and sent to Beam cluster nodes.
+;; In this case #'times-two is serialized  and sent to Beam cluster nodes.
 ;; When the var is deserialized, thurber ensures that it is rebound to
 ;; its function.
 
@@ -224,6 +224,33 @@
       #'th/log)))
 
 (.run example-pipeline) ;; => logs "6"
+
+;; A more complicated combiner can calculate the mean of a data
+;; stream:
+(def mean-combiner
+  (th/combiner
+    (th/fn* mean-extractf [acc]
+      (double (if (zero? (:count acc))
+                0 (/ (:sum acc) (:count acc)))))
+    (th/fn* mean-combinef [& accs]
+      (apply merge-with + accs))
+    ;; inline functions can be multi-arity:
+    (th/fn* mean-reducef
+      ([] {:count 0 :sum 0})
+      ([acc inp]
+       (-> acc
+         (update :count inc)
+         (update :sum + inp))))))
+
+(def example-pipeline
+  (doto (th/create-pipeline)
+    (th/apply!
+      data-source
+      (Combine/globally
+        mean-combiner)
+      #'th/log)))
+
+(.run example-pipeline) ;; => logs "2.0"
 
 ;;;; NAMING TRANSFORMS
 

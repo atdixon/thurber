@@ -29,6 +29,7 @@
   {:demo {:source-paths ["demo"]
           :dependencies
           [;; -- demo deps --
+           [org.clojure/core.async "0.7.559"]
            [deercreeklabs/lancaster "0.8.6"]
            [org.apache.beam/beam-runners-direct-java "2.16.0"]
            [org.apache.beam/beam-examples-java "2.16.0"
@@ -47,8 +48,7 @@
            [lein-ancient "0.6.15"]
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
-           [[org.clojure/core.async "0.6.532"]
-            [org.apache.kafka/kafka-clients "2.4.0"]
+           [[org.apache.kafka/kafka-clients "2.4.0"]
             [org.apache.beam/beam-sdks-java-io-kafka "2.16.0"]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]

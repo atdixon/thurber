@@ -37,7 +37,7 @@ public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
         return this.extractf.invoke(acc);
     }
 
-    // todo
+    // todo -- consult var metadata for these?? (how is the default determined btw?)
 //    @Override
 //    public Coder<Object> getAccumulatorCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
 //        return (Coder<Object>) Core.nippy_.deref();

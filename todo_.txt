@@ -1,6 +1,8 @@
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
 
+* new TimerFamily feature!
+
 * clojure-ify KafkaIO etc, make optional dep
 * bump to latest beam release
 * switch to namespaced keys ::th/xform etc
@@ -11,7 +13,7 @@
 
 * UnboundedSeqSource needed? or facade beam's own facilities
 
-* window + trigger DSL?
+* window + trigger DSL? overall facade?
 
 * metrics
 * job name
