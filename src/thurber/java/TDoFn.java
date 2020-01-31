@@ -10,6 +10,7 @@ import org.apache.beam.sdk.state.BagState;
 import org.apache.beam.sdk.state.Timer;
 import org.apache.beam.sdk.state.ValueState;
 import org.apache.beam.sdk.transforms.DoFn;
+import org.apache.beam.sdk.transforms.splittabledofn.RestrictionTracker;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 
 import javax.annotation.Nullable;
@@ -38,7 +39,7 @@ public final class TDoFn extends DoFn<Object, Object> {
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window) {
-        execute(fn, args, options, context, window, null, null, null, null);
+        execute(fn, args, options, context, window, null, null, null, null, null);
     }
 
     // --
@@ -47,16 +48,17 @@ public final class TDoFn extends DoFn<Object, Object> {
     private static final ThreadLocal<TDoFnContext> context
         = (ThreadLocal<TDoFnContext>) Core.context_.deref();
 
-    static void execute(IFn fn, Object[] args,
-                        PipelineOptions options,
-                        @Nullable ProcessContext processContext,
-                        BoundedWindow window,
-                        @Nullable ValueState<Object> state,
-                        @Nullable BagState<Object> bagState,
-                        @Nullable Timer timer,
-                        @Nullable OnTimerContext timerContext) {
+    static Object execute(IFn fn, Object[] args,
+                          PipelineOptions options,
+                          @Nullable ProcessContext processContext,
+                          BoundedWindow window,
+                          @Nullable ValueState<Object> state,
+                          @Nullable BagState<Object> bagState,
+                          @Nullable Timer timer,
+                          @Nullable OnTimerContext timerContext,
+                          @Nullable RestrictionTracker<Object, Object> restrictionTracker) {
         context.set(new TDoFnContext(
-            options, processContext, window, state, bagState, timer, timerContext));
+            options, processContext, window, state, bagState, timer, timerContext, restrictionTracker));
         try {
             @Nullable final Object rv;
             if (processContext == null) {
@@ -70,6 +72,8 @@ public final class TDoFn extends DoFn<Object, Object> {
                 args_[args.length] = processContext.element();
                 rv = fn.applyTo(ArraySeq.create(args_));
             }
+            if (rv instanceof ProcessContinuation)
+                return rv;
             if (rv != null) {
                 WindowedContext useContext = processContext != null
                     ? processContext : timerContext;
@@ -87,6 +91,7 @@ public final class TDoFn extends DoFn<Object, Object> {
         } finally {
             context.set(null);
         }
+        return null;
     }
 
 }

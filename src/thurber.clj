@@ -15,7 +15,8 @@
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
-           (org.apache.beam.sdk.state ValueState Timer BagState)))
+           (org.apache.beam.sdk.state ValueState Timer BagState)
+           (org.apache.beam.sdk.transforms.splittabledofn RestrictionTracker)))
 
 ;; --
 
@@ -113,6 +114,7 @@
 (defn ^BagState *bag-state [] (.-bagState ^TDoFnContext (.get tl-context)))
 (defn ^Timer *event-timer [] (.-eventTimer ^TDoFnContext (.get tl-context)))
 (defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TDoFnContext (.get tl-context)))
+(defn ^RestrictionTracker *restriction-tracker [] (.-restrictionTracker ^TDoFnContext (.get tl-context)))
 
 (defn ^"[Ljava.lang.Object;" *proxy-args [] (.get tl-proxy-args))
 

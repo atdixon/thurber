@@ -35,10 +35,6 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
     private final TimerSpec timerSpec
         = TimerSpecs.timer(TimeDomain.EVENT_TIME);
 
-    public TDoFn_Stateful(Var fnVar, @Nullable Var timerFn, Object... timerArgs) {
-        this(fnVar, timerFn, new Object[]{}, timerArgs);
-    }
-
     public TDoFn_Stateful(Var fnVar, Var timerFnVar, Object[] args, Object[] timerArgs) {
         this.fnVar = fnVar;
         this.timerFnVar = timerFnVar;
@@ -60,13 +56,13 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window,
                                @StateId("val-state") ValueState<Object> state, @StateId("bag-state") BagState<Object> bagState,
                                @TimerId("timer") Timer timer) {
-        TDoFn.execute(fn, args, options, context, window, state, bagState, timer, null);
+        TDoFn.execute(fn, args, options, context, window, state, bagState, timer, null, null);
     }
 
     @OnTimer("timer")
     public void onTimer(PipelineOptions options, OnTimerContext context, @TimerId("timer") Timer timer,
                         @StateId("val-state") ValueState<Object> state, @StateId("bag-state") BagState<Object> bagState) {
-        TDoFn.execute(timerFn, timerArgs, options, null, null, state, bagState, timer, context);
+        TDoFn.execute(timerFn, timerArgs, options, null, null, state, bagState, timer, context, null);
     }
 
 }
