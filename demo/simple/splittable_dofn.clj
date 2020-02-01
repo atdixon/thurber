@@ -6,7 +6,7 @@
            (thurber.java TDoFn_Splittable_Unbounded)
            (org.apache.beam.sdk.io.range OffsetRange)
            (org.apache.beam.sdk.transforms.splittabledofn OffsetRangeTracker)
-           (org.joda.time Duration DateTimeZone)
+           (org.joda.time Duration Instant)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow Window CalendarWindows AfterWatermark AfterPane)
            (org.apache.beam.sdk Pipeline PipelineResult PipelineResult$State)))
 
@@ -16,41 +16,54 @@
 ;; => (demo!)                                           ; start a demo
 ;;
 ;; => (update-timestamp! #inst "2020-01-01T11:00:00Z")  ; elements will get this timestamp
-;; => (put-data! :hello)                                ; emits an element into the pipeline
+;; => (put-element! :hello                              ; emits an element into the pipeline
 ;;
 ;; => (update-watermark! #inst "2020-01-01T11:00:00Z")  ; next element will update the watermark
-;; => (put-data! :world)
+;; => (put-element! :world)
 ;; =>
-;; => (.cancel @latest-pipeline-result)                 ; kills the pipeline
+;; => (cancel-demo!)                                    ; kills the pipeline
+;;
 ;; => (demo!)                                           ; start again from scratch
 ;;
 
+(defn ^Instant ->instant [ts]
+  (if (instance? Instant ts)
+    ts (.toInstant (c/to-date-time ts))))
+
+(def ^Duration resume-delay (Duration/millis 250))
+
 (defonce latest-pipeline-result (atom nil))
 
-(defonce data (atom nil))
+(defonce elements (atom nil))
 (defonce watermark (atom nil))
 (defonce timestamp (atom nil))
 
-(defn- get-latest-pipeline-state []
+(defn ^PipelineResult$State get-latest-pipeline-state []
   (when @latest-pipeline-result
     (.getState ^PipelineResult @latest-pipeline-result)))
 
-(defn- reset-data! []
-  (reset! data [])
+(defn cancel-demo! []
+  (.cancel @latest-pipeline-result))
+
+(defn reset-elements! []
+  (reset! elements [])
   (reset! watermark BoundedWindow/TIMESTAMP_MIN_VALUE)
   (reset! timestamp BoundedWindow/TIMESTAMP_MIN_VALUE))
 
-(defn- update-timestamp! [ts]
-  (reset! timestamp
-    (.toInstant (c/to-date-time ts))))
+(defn update-timestamp! [ts]
+  (reset! timestamp (->instant ts)))
 
-(defn- update-watermark! [wm]
-  (reset! watermark
-    (.toInstant (c/to-date-time wm))))
+(defn update-watermark! [wm]
+  (let [wm-inst (->instant wm)]
+    (swap! watermark
+      (fn [curr-wm]
+        (if (< (compare wm-inst curr-wm) 0)
+          (throw (IllegalStateException. "can't regress watermark")) wm-inst)))))
 
-(defn- put-data! [elem]
-  (swap! data conj
-    {:data elem :watermark @watermark :timestamp @timestamp}) elem)
+(defn put-element! [elem]
+  (swap! elements conj
+    {:element elem :watermark @watermark :timestamp @timestamp})
+  elem)
 
 ;; --
 
@@ -58,18 +71,26 @@
   (let [tracker (th/*restriction-tracker)
         ^OffsetRange restriction (.currentRestriction tracker)
         [from to] [(.getFrom restriction) (.getTo restriction)]
-        data-snapshot @data]
+        elements-snapshot @elements
+        num-elements-snapshot (count elements-snapshot)]
     (loop [curr from]
       (cond
-        ;; -- resume scenario --
-        (or (>= curr to)
-          (>= curr (count data-snapshot)))
-        (-> (DoFn$ProcessContinuation/resume)
-          (.withResumeDelay (Duration/millis 1000)))
+        ;; -- resume scenario/s --
+        (>= curr num-elements-snapshot)
+        (do
+          (.updateWatermark (th/*process-context) @watermark)
+          (if (= watermark BoundedWindow/TIMESTAMP_MAX_VALUE)
+            (DoFn$ProcessContinuation/stop)
+            (-> (DoFn$ProcessContinuation/resume)
+              (.withResumeDelay resume-delay))))
+        (>= curr to)
+        (do
+          (-> (DoFn$ProcessContinuation/resume)
+            (.withResumeDelay resume-delay)))
         ;; -- output scenario --
         (.tryClaim tracker curr)
-        (let [{:keys [data timestamp watermark]} (data-snapshot curr)]
-          (.outputWithTimestamp (th/*process-context) data timestamp)
+        (let [{:keys [element timestamp watermark]} (elements-snapshot curr)]
+          (.outputWithTimestamp (th/*process-context) element timestamp)
           (.updateWatermark (th/*process-context) watermark)
           (recur (inc curr)))
         ;; -- stop scenario --
@@ -86,7 +107,7 @@
   (ParDo/of
     (TDoFn_Splittable_Unbounded. #'process-restriction #'init-restriction, #'get-tracker)))
 
-(defn- ^Pipeline build-pipeline! [^Pipeline pipeline]
+(defn ^Pipeline build-pipeline! [^Pipeline pipeline]
   (doto pipeline
     (th/apply!
       (th/create [:kickoff])
@@ -110,7 +131,7 @@
 (defn demo! []
   (when (= PipelineResult$State/RUNNING (get-latest-pipeline-state))
     (throw (RuntimeException. "already running")))
-  (reset-data!)
+  (reset-elements!)
   (let [n-cpu (.availableProcessors (Runtime/getRuntime))
         pipeline (-> {:target-parallelism (max (int (/ n-cpu 2)) (int 1))
                       :block-on-run false}
