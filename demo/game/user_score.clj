@@ -6,7 +6,7 @@
            (org.apache.beam.sdk.values KV)
            (org.apache.beam.sdk.transforms Sum)))
 
-(defn- parse-event [elem]
+(defn- ^{:th/coder th/nippy} parse-event [elem]
   (try
     (let [[user team score ts :as parts] (map str/trim (str/split elem #","))]
       (if (>= (count parts) 4)

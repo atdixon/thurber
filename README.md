@@ -15,7 +15,7 @@ _This is alpha software. Watch [release notes](https://github.com/atdixon/thurbe
 * [Documentation](#documentation)
 * [Demos](#demos)
     * [Word Count](#word-count)
-    * [Mobile Gaming Example](#mobile-gaming-example)
+    * [Mobile Gaming Examples](#mobile-gaming-examples)
 * [Make It Fast](#make-it-fast)
 
 ## Quickstart
@@ -108,14 +108,14 @@ The `word_count` package contains ports of Beam's
 [Word Count Examples](https://beam.apache.org/get-started/wordcount-example/)
 to Clojure/thurber.
 
-### Mobile Gaming Example
+### Mobile Gaming Examples
 
 Beam's [Mobile Gaming Examples](https://beam.apache.org/get-started/mobile-gaming-example/)
 have been ported to Clojure using thurber.
 
-These are fully functional ports but require deployment to GCP Dataflow. 
+These are fully functional ports. They require deployment to GCP Dataflow: 
 
-(How-to notes coming soon.)
+* [How to Run Beam Mobile Gaming Examples](./doc/running-mobile-gaming-examples.md)
 
 ## Make It Fast
 

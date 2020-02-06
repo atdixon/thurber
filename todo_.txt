@@ -3,8 +3,9 @@
 
 * new TimerFamily feature!
 
-* clojure-ify KafkaIO etc, make optional dep
+* clojure-ify KafkaIO (get-watermark, get-timestamp, etc), JdbcIO, etc, make optional dep
 * bump to latest beam release
+    * validate dataflow demos after doing this
 * switch to namespaced keys ::th/xform etc
 * instead of kv->clj, support destructuring KVs first-class,
     including KV<?,Iterable> and KV<?,CoGbkResult>, so that
@@ -16,7 +17,6 @@
 * window + trigger DSL? overall facade?
 
 * metrics
-* job name
 
 * dataflow/gaming docs
     * lein with-profile +demo,+dataflow uberjar

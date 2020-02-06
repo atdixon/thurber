@@ -252,8 +252,8 @@
               ;; Take care here. acc' may commonly be PCollection but can also be
               ;;    PCollectionTuple or PCollectionView, eg.
               acc' (if (:th/name nxf)
-                     (.apply acc (str prefix ":" (:th/name nxf)) (:th/xform nxf))
-                     (.apply acc (str prefix ":" (.getName (:th/xform nxf))) (:th/xform nxf)))
+                     (.apply acc (str prefix (when (not-empty prefix) ":") (:th/name nxf)) (:th/xform nxf))
+                     (.apply acc (str prefix (when (not-empty prefix) ":") (.getName (:th/xform nxf))) (:th/xform nxf)))
               explicit-coder (->coder acc nxf)]
           (when explicit-coder
             (set-coder! acc' explicit-coder)) acc')) input xfs)))

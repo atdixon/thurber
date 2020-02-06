@@ -1,3 +1,5 @@
+(def version-apache-beam "2.19.0")
+
 (defproject com.github.atdixon/thurber "0.0.3-alpha2-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
   :description "thurber: Apache Beam on Clojure"
@@ -19,7 +21,7 @@
    [org.clojure/clojure "1.10.1"]
    [org.clojure/data.json "0.2.7"]
    [org.clojure/tools.logging "0.5.0"]
-   [org.apache.beam/beam-sdks-java-core "2.16.0"]
+   [org.apache.beam/beam-sdks-java-core ~version-apache-beam]
    [com.google.code.findbugs/jsr305 "3.0.2"]
    [org.javassist/javassist "3.26.0-GA"]
    [com.taoensso/nippy "2.14.0"]
@@ -31,8 +33,8 @@
           [;; -- demo deps --
            [org.clojure/core.async "0.7.559"]
            [deercreeklabs/lancaster "0.8.6"]
-           [org.apache.beam/beam-runners-direct-java "2.16.0"]
-           [org.apache.beam/beam-examples-java "2.16.0"
+           [org.apache.beam/beam-runners-direct-java ~version-apache-beam]
+           [org.apache.beam/beam-examples-java ~version-apache-beam
             :exclusions [org.slf4j/slf4j-jdk14]]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dev [:demo
@@ -49,7 +51,7 @@
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
            [[org.apache.kafka/kafka-clients "2.4.0"]
-            [org.apache.beam/beam-sdks-java-io-kafka "2.16.0"]]}
+            [org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]]}
    :dataflow {:dependencies
-              [[org.apache.beam/beam-sdks-java-io-google-cloud-platform "2.16.0"]
-               [org.apache.beam/beam-runners-google-cloud-dataflow-java "2.16.0"]]}})
+              [[org.apache.beam/beam-sdks-java-io-google-cloud-platform ~version-apache-beam]
+               [org.apache.beam/beam-runners-google-cloud-dataflow-java ~version-apache-beam]]}})
