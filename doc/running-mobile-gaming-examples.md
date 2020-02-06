@@ -61,8 +61,6 @@ with your GCP account:
           
 ### Hourly Team Score
 
-todo -- getting dataflow errors
-
     lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
           --appName="thurber-demo-hourly-team-score" \
           --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
@@ -79,6 +77,14 @@ todo -- getting dataflow errors
 * Create Dataset and table
     * `bq mk --project thurber-demo --dataset thurber_demo_game`
     * `bq mk --project thurber-demo --table thurber_demo_game.leaderboard`
+    
+    lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
+          --appName="thurber-demo-hourly-team-score" \
+          --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
+          --runner=DataflowRunner \
+          --region=us-central1 --project=thurber-demo \
+          --gcpTempLocation=gs://thurber-demo/gcp-temp \
+          --filesToStage=$(ls target/*-standalone.jar)
 
 todo -- run Injector
 todo -- clean up
