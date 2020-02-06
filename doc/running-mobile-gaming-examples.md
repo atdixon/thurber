@@ -61,6 +61,10 @@ with your GCP account:
           
 ### Hourly Team Score
 
+* Follow Prerequisites above
+
+Deploy the pipeline:
+
     lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
       --appName="thurber-demo-hourly-team-score" \
       --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
