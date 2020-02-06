@@ -62,32 +62,40 @@ with your GCP account:
 ### Hourly Team Score
 
     lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
-          --appName="thurber-demo-hourly-team-score" \
-          --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
-          --runner=DataflowRunner \
-          --region=us-central1 --project=thurber-demo \
-          --gcpTempLocation=gs://thurber-demo/gcp-temp \
-          --filesToStage=$(ls target/*-standalone.jar)
+      --appName="thurber-demo-hourly-team-score" \
+      --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
+      --runner=DataflowRunner \
+      --region=us-central1 --project=thurber-demo \
+      --gcpTempLocation=gs://thurber-demo/gcp-temp \
+      --filesToStage=$(ls target/*-standalone.jar)
 
 ### Leaderboard
 
 * Follow Prerequisites above
-* Create Topic
+* Create topic
     * `gcloud pubsub topics create --project thurber-demo thurber-demo-game`
-* Create Dataset and table
-    * `bq mk --project thurber-demo --dataset thurber_demo_game`
-    * `bq mk --project thurber-demo --table thurber_demo_game.leaderboard`
-    
-    lein with-profile +demo,+dataflow run -m game.hourly-team-score/demo! \
-          --appName="thurber-demo-hourly-team-score" \
-          --jobName="thurber-demo-hourly-team-score-$(date +%s)" \
-          --runner=DataflowRunner \
-          --region=us-central1 --project=thurber-demo \
-          --gcpTempLocation=gs://thurber-demo/gcp-temp \
-          --filesToStage=$(ls target/*-standalone.jar)
+* Create dataset and table
+    * `bq mk --project_id thurber-demo --dataset thurber_demo_game`
+    * `bq mk --project_id thurber-demo --table thurber_demo_game.leaderboard`
 
-todo -- run Injector
-todo -- clean up
+    
+    lein with-profile +demo,+dataflow run -m game.leader-board/demo! \
+      --appName="thurber-demo-leaderboard" \
+      --jobName="thurber-demo-leaderboard-$(date +%s)" \
+      --runner=DataflowRunner \
+      --region=us-central1 --project=thurber-demo \
+      --gcpTempLocation=gs://thurber-demo/gcp-temp \
+      --filesToStage=$(ls target/*-standalone.jar)
+      
+In a separate terminal window, generate streaming data:
+
+    lein with-profile +demo,+dataflow run -m game.injector \
+        thurber-demo thurber-demo-game none
+        
+* Afterwards, clean up
+    * `gcloud pubsub topics delete --project thurber-demo thurber-demo-game`
+    * `bq rm --project_id thurber-demo --table thurber_demo_game.leaderboard`
+    * `bq rm --project_id thurber-demo --dataset thurber_demo_game`
 
 ### Game Stats
 

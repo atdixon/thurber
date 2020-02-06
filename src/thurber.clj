@@ -242,7 +242,7 @@
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...);
   Answers a PCollection, PCollectionView, or so on ..."
   [input xf-or-prefix & xfs]
-  (let [[prefix input xfs]
+  (let [[prefix input xfs']
         (if (string? xf-or-prefix)
           [xf-or-prefix input xfs]
           ["" input (conj xfs xf-or-prefix)])]
@@ -256,7 +256,7 @@
                      (.apply acc (str prefix (when (not-empty prefix) ":") (.getName (:th/xform nxf))) (:th/xform nxf)))
               explicit-coder (->coder acc nxf)]
           (when explicit-coder
-            (set-coder! acc' explicit-coder)) acc')) input xfs)))
+            (set-coder! acc' explicit-coder)) acc')) input xfs')))
 
 (defn ^PTransform compose [& [xf-or-name :as xfs]]
   (proxy [PTransform] [(when (string? xf-or-name) xf-or-name)]
