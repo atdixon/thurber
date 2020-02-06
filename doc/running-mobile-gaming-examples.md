@@ -78,7 +78,7 @@ with your GCP account:
     * `bq mk --project_id thurber-demo --dataset thurber_demo_game`
     * `bq mk --project_id thurber-demo --table thurber_demo_game.leaderboard`
 
-
+To deploy the pipeline:
     
     lein with-profile +demo,+dataflow run -m game.leader-board/demo! \
       --appName="thurber-demo-leaderboard" \
