@@ -11,7 +11,7 @@ Google Cloud provides free trials so these examples can be executed in Dataflow
 
 Before attempting to execute thurber demos in Dataflow:
 
-**1/** Create `thurber-demo` project.
+**1/** Create `thurber-demo` GCP project.
 
 Alternatively you can use your default project or any other project you create;
 just replace references to `thurber-demo` project in this documentation with the
@@ -41,8 +41,8 @@ containing the code.
 
     lein with-profile +demo,+dataflow uberjar
 
-(Note: the resultant JAR contains our non-AOT'd Clojure sources that will dynamically
-compile and execute in Dataflow!)
+Note: the resultant JAR contains our non-AOT'd Clojure sources that will dynamically
+compile and execute in Dataflow!
 
 ### User Score
 
