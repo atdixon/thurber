@@ -1,6 +1,8 @@
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
 
+* clojurey map view provider etc
+
 * new TimerFamily feature!
 
 * clojure-ify KafkaIO (get-watermark, get-timestamp, etc), JdbcIO, etc, make optional dep
