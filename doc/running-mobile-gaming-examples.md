@@ -10,6 +10,7 @@ Google Cloud provides free trials so these examples can be executed in Dataflow
     * [Hourly Team Score](#hourly-team-score)
     * [Leaderboard](#leaderboard)
     * [Game Stats](#game-stats)
+    * [Stateful Team Score](#stateful-team-score)
 
 ### Links
 
