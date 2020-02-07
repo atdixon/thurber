@@ -1,16 +1,24 @@
-### Running Beam Mobile Gaming Examples
+## Running Beam Mobile Gaming Examples
 
 Google Cloud provides free trials so these examples can be executed in Dataflow
  without cost.
+ 
+* [Links](#links)
+* [Prerequisites](#prerequisites)
+* Running the Demos
+    * [User Score](#user-score)
+    * [Hourly Team Score](#hourly-team-score)
+    * [Leaderboard](#leaderboard)
+    * [Game Stats](#game-stats)
 
-#### Links
+### Links
 
 * Beam Mobile Gaming Examples are documented here: https://beam.apache.org/get-started/mobile-gaming-example/
 * Java implementations are here: https://github.com/apache/beam/tree/master/examples
 *  Clojure/thurber ports of each example can be found in [../demo/game](../demo/game); this page documents how
     to deploy these demos.
 
-#### Prerequisites
+### Prerequisites
 
 Before attempting to execute thurber demos in Dataflow, you must:
 
