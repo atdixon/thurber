@@ -11,6 +11,7 @@ Google Cloud provides free trials so these examples can be executed in Dataflow
     * [Leaderboard](#leaderboard)
     * [Game Stats](#game-stats)
     * [Stateful Team Score](#stateful-team-score)
+* [Demo Profiling](#profiling)
 
 ### Links
 
@@ -146,3 +147,11 @@ with your GCP account:
 * Afterwards, clean up
     * `gcloud pubsub topics delete --project thurber-demo thurber-demo-game`
     * `bq rm --project_id thurber-demo --dataset thurber_demo_game`
+    
+### Profiling
+
+Add the following arg to any deployment to profile:
+
+    --profilingAgentConfiguration='{"APICurated":true}'
+    
+GCP will make profiled data available visualized in StackDriver.
