@@ -18,19 +18,6 @@
 
 * window + trigger DSL? overall facade?
 
-* metrics
-
-* dataflow/gaming docs
-    * lein with-profile +demo,+dataflow uberjar
-    * lein with-profile +demo,+dataflow run -m game.user-score-opt/demo! \
-          --appName="thurber-demo/user-score-opt" \
-          --runner=DataflowRunner --region=us-central1 --project=atdixon \
-          --gcpTempLocation=gs://thurber-demo/gcp-temp \
-          --filesToStage=target/thurber-0.0.2-alpha2-SNAPSHOT-standalone.jar \
-          --profilingAgentConfiguration='{"APICurated":true}'
-    * leaderboard example requires:
-        * create topic, dataset, and deploy pipline and running Injector
-
 * inline comps
 * fujion
 * instead of dynamic thread bindings
@@ -39,9 +26,6 @@
         (defn doof [& {:keys [process-context]}] ...process-context...)
     - try and benchmark via user_score_opt
         then compare to user_score... was pushThreadBindings the $$$ part?
-
-* unit test more demos and gaming ports
-    - show off redefs
 
 * since type hints for dofn's necessary/good,
     what about context injection by type??? how far could this go?
