@@ -96,9 +96,9 @@ INFO thurber - you: 2
 Each namespace in the `demo/` source directory is a pipeline written in Clojure
 using thurber. Comments in the source highlight salient aspects of thurber usage.
 
-These are the best way to learn thurber's API and serve as recipes for
-various scenarios (use of tags, side inputs, windowing, combining,
-Beam's State API, etc etc.)
+Along with the [code walkthrough](./demo/walkthrough.clj) these are the best way to learn 
+thurber's API and serve as recipes for various scenarios (use of tags, side inputs,
+windowing, combining, Beam's State API, etc etc.)
 
 To execute a demo, start a REPL and evaluate `(demo!)` from within the respective namespace.
 
