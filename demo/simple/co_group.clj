@@ -11,7 +11,7 @@
             (.and acc name pcoll)) (KeyedPCollectionTuple/of name pcoll) (partition 2 nps)))
 
 (defn- build-pipeline! [pipeline]
-  (letfn [(->kv-stream [scope data] (th/apply! scope pipeline (th/create data)
+  (letfn [(->kv-stream [scope data] (th/apply! pipeline scope (th/create data)
                                       (th/partial "key-by-name" #'th/->kv :name)))]
     (let [email-stream (->kv-stream "email-stream"
                          [{:name :amy :email "amy@thurber"}
