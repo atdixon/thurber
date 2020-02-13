@@ -39,6 +39,7 @@
       (sut/update-watermark!
         #inst "2020-01-01T00:00:00.000Z")
       (delay*)
+      (delay*)
 
       (is (= @test-buffer [{:elem 1 :on-time? false}
                            {:elem 2 :on-time? false}

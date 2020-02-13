@@ -77,16 +77,13 @@
       (cond
         ;; -- resume scenario/s --
         (>= curr num-elements-snapshot)
-        (let [wm @watermark]
-          (.updateWatermark (th/*process-context) wm)
-          (if (= wm BoundedWindow/TIMESTAMP_MAX_VALUE)
-            (DoFn$ProcessContinuation/stop)
-            (-> (DoFn$ProcessContinuation/resume)
-              (.withResumeDelay resume-delay))))
-        (>= curr to)
         (do
+          (.updateWatermark (th/*process-context) @watermark)
           (-> (DoFn$ProcessContinuation/resume)
             (.withResumeDelay resume-delay)))
+        (>= curr to)
+        (-> (DoFn$ProcessContinuation/resume)
+          (.withResumeDelay resume-delay))
         ;; -- output scenario --
         (.tryClaim tracker curr)
         (let [{:keys [element timestamp watermark]} (elements-snapshot curr)]
