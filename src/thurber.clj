@@ -16,7 +16,8 @@
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
            (org.apache.beam.sdk.state ValueState Timer BagState)
-           (org.apache.beam.sdk.transforms.splittabledofn RestrictionTracker)))
+           (org.apache.beam.sdk.transforms.splittabledofn RestrictionTracker)
+           (org.apache.beam.sdk.transforms.join CoGbkResult CoGbkResultSchema)))
 
 ;; --
 
@@ -315,3 +316,22 @@
                   (*element-window)) elem))
 
 ;; --
+
+(defn co-gbk-result->clj [^CoGbkResult r]
+  (let [^CoGbkResultSchema s (-> r .getSchema)
+        tags (-> s .getTupleTagList .getAll)]
+    (into {}
+      (map (fn [^TupleTag tag]
+             [(-> tag .getId keyword)
+              (->> tag (.getAll r) seq)]) tags))))
+
+(defn kv->clj*
+  "Convert a Beam KV *result* to Clojure vector: the result is not serializable and
+  rather may contain result/s as lazy sequences backed by Beam lazy Iterable results;
+  therefore not for use as DoFn."
+  [^KV kv]
+  (let [key- (.getKey kv) val- (.getValue kv)]
+    (cond
+      (instance? CoGbkResult val-) [key- (co-gbk-result->clj val-)]
+      (instance? Iterable val-) [key- (seq val-)]
+      :else [key- val-])))

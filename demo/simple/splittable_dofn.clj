@@ -16,7 +16,7 @@
 ;; => (demo!)                                           ; start a demo
 ;;
 ;; => (update-timestamp! #inst "2020-01-01T11:00:00Z")  ; elements will get this timestamp
-;; => (put-element! :hello                              ; emits an element into the pipeline
+;; => (put-element! :hello)                             ; emits an element into the pipeline
 ;;
 ;; => (update-watermark! #inst "2020-01-01T11:00:00Z")  ; next element will update the watermark
 ;; => (put-element! :world)
@@ -77,9 +77,9 @@
       (cond
         ;; -- resume scenario/s --
         (>= curr num-elements-snapshot)
-        (do
-          (.updateWatermark (th/*process-context) @watermark)
-          (if (= watermark BoundedWindow/TIMESTAMP_MAX_VALUE)
+        (let [wm @watermark]
+          (.updateWatermark (th/*process-context) wm)
+          (if (= wm BoundedWindow/TIMESTAMP_MAX_VALUE)
             (DoFn$ProcessContinuation/stop)
             (-> (DoFn$ProcessContinuation/resume)
               (.withResumeDelay resume-delay))))
@@ -133,7 +133,7 @@
     (throw (RuntimeException. "already running")))
   (reset-elements!)
   (let [n-cpu (.availableProcessors (Runtime/getRuntime))
-        pipeline (-> {:target-parallelism (max (int (/ n-cpu 2)) (int 1))
+        pipeline (-> {:target-parallelism (max (int (/ n-cpu 4)) (int 1))
                       :block-on-run false}
                    th/create-pipeline)]
     (reset! latest-pipeline-result

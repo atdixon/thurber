@@ -3,7 +3,8 @@
             [clojure.string :as str]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (org.apache.beam.sdk.transforms Count)))
+           (org.apache.beam.sdk.transforms Count)
+           (org.apache.beam.sdk.values KV)))
 
 ;; Simple Clojure functions can serve as Beam DoFns.
 ;;
@@ -16,9 +17,12 @@
   (remove empty? (str/split sentence #"[^\p{L}]+")))
 
 ;; When a function evaluates to a simple single value like a String,
-;; this single value is emitted downstream.
-(defn- format-as-text [[k v]]
-  (format "%s: %d" k v))
+;; this single value is emitted downstream. Note that we annotate
+;; our function with the coder to use; otherwise it would wrongly
+;; inherit the incoming KvCoder.
+(defn- ^{:th/coder th/nippy} format-as-text [^KV kv]
+  (let [[k v] (th/kv->clj* kv)]
+    (format "%s: %d" k v)))
 
 (defn- sink* [elem]
   (log/info elem))
@@ -29,10 +33,7 @@
     "count-words"
     #'extract-words
     #'th/->kv
-    (Count/perKey)
-    ;; Not necessary to convert to KV to clj (ie MapEntry)
-    ;; but this allows downstream to use Clojure destructuring.
-    #'th/kv->clj))
+    (Count/perKey)))
 
 (defn- build-pipeline! [pipeline]
   (let [conf (th/get-custom-config pipeline)]

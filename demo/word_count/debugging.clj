@@ -5,7 +5,8 @@
   (:import (org.apache.beam.sdk.io TextIO)
            (java.util.regex Pattern)
            (org.apache.beam.sdk.testing PAssert)
-           (org.apache.beam.sdk.metrics Metrics Counter)))
+           (org.apache.beam.sdk.metrics Metrics Counter)
+           (org.apache.beam.sdk.values KV)))
 
 ;; While Apache Beam has less restrictions on metrics naming, Google StackDriver will not
 ;; capture/show metrics that don't follow naming rules:
@@ -25,16 +26,18 @@
         ;; state; we pre-compile our regex Pattern here;
         ;; state we pass must be Serializable; Pattern is.
         (th/partial
-          (th/fn* filter-per-pattern [^Pattern pattern [key- val- :as elem]]
-            (if (re-matches pattern key-)
-              (do
-                (.inc matched-words)
-                (log/debugf "Matched: %s" key-)
-                elem)
-              (do
-                (.inc unmatched-words)
-                (log/tracef "Did not match: %s" key-))))
-          (re-pattern (:filter-pattern conf))))
+          (th/fn* filter-per-pattern [^Pattern pattern ^KV elem]
+            (let [[key- val-] (th/kv->clj* elem)]
+              (if (re-matches pattern key-)
+                (do
+                  (.inc matched-words)
+                  (log/debugf "Matched: %s" key-)
+                  elem)
+                (do
+                  (.inc unmatched-words)
+                  (log/tracef "Did not match: %s" key-)))))
+          (re-pattern (:filter-pattern conf)))
+        #'th/kv->clj)
       (as-> result
         (-> (PAssert/that result)
           (.containsInAnyOrder [["pain" 5] ["pleasure" 7]]))))
