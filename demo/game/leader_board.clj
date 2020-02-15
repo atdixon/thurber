@@ -20,7 +20,7 @@
 
 ;; --
 
-(defn ->game-events-xf [topic]
+(defn ->game-events-xf [^String topic]
   (th/compose "game-events"
     (-> (PubsubIO/readStrings)
       (.withTimestampAttribute GameConstants/TIMESTAMP_ATTRIBUTE)

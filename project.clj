@@ -36,7 +36,10 @@
            [org.apache.beam/beam-runners-direct-java ~version-apache-beam]
            [org.apache.beam/beam-examples-java ~version-apache-beam
             :exclusions [org.slf4j/slf4j-jdk14]]
-           [org.slf4j/slf4j-simple "1.7.29"]]}
+           [org.slf4j/slf4j-simple "1.7.29"]
+           ;; -- gcp --
+           [org.apache.beam/beam-sdks-java-io-google-cloud-platform ~version-apache-beam]
+           #_[com.google.cloud/google-cloud-pubsub "1.102.1"]]}
    :dev [:demo
          {:source-paths ["demo"]
           :dependencies
