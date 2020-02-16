@@ -3,6 +3,9 @@ package thurber.java;
 import clojure.lang.IFn;
 import clojure.lang.RT;
 import clojure.lang.Var;
+import org.apache.beam.sdk.coders.CannotProvideCoderException;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CoderRegistry;
 import org.apache.beam.sdk.transforms.Combine;
 
 import java.io.IOException;
@@ -38,15 +41,15 @@ public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
     }
 
     // todo -- consult var metadata for these?? (how is the default determined btw?)
-//    @Override
-//    public Coder<Object> getAccumulatorCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
-//        return (Coder<Object>) Core.nippy_.deref();
-//    }
-//
-//    @Override
-//    public Coder<Object> getDefaultOutputCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
-//        return (Coder<Object>) Core.nippy_.deref();
-//    }
+    @Override
+    public Coder<Object> getAccumulatorCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
+        return (Coder<Object>) Core.nippy_.deref();
+    }
+
+    @Override
+    public Coder<Object> getDefaultOutputCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
+        return (Coder<Object>) Core.nippy_.deref();
+    }
 
     private void readObject(java.io.ObjectInputStream stream)
         throws IOException, ClassNotFoundException {

@@ -7,11 +7,11 @@
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction Filter SerializableBiFunction)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext)
+           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext MutableTransientHolder)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline PipelineResult)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
-           (clojure.lang MapEntry Keyword IPersistentMap)
+           (clojure.lang MapEntry Keyword IPersistentMap ITransientCollection)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
@@ -89,6 +89,16 @@
   [data-input]
   (let [[k v] (nippy/thaw-from-in! data-input)]
     (MapEntry/create k v)))
+
+(nippy/extend-freeze
+  MutableTransientHolder :thurber/transient-coll
+  [val data-output]
+  (nippy/freeze-to-out! data-output (.toPersistent ^MutableTransientHolder val)))
+
+(nippy/extend-thaw
+  :thurber/transient-coll
+  [data-input]
+  (MutableTransientHolder. (transient (nippy/thaw-from-in! data-input))))
 
 ;; --
 

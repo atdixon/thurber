@@ -1,3 +1,6 @@
+* fn* exceptions nice messages
+* coder issues help
+
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
 
