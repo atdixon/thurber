@@ -1,10 +1,15 @@
 package thurber.java;
 
 import clojure.lang.IFn;
+import clojure.lang.IMeta;
 import clojure.lang.RT;
 import clojure.lang.Var;
+import org.apache.beam.sdk.coders.CannotProvideCoderException;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.CoderRegistry;
 import org.apache.beam.sdk.transforms.Combine;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
@@ -37,16 +42,21 @@ public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
         return this.extractf.invoke(acc);
     }
 
-    // todo -- consult var metadata for these?? (how is the default determined btw?)
-//    @Override
-//    public Coder<Object> getAccumulatorCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
-//        return (Coder<Object>) Core.nippy_.deref();
-//    }
-//
-//    @Override
-//    public Coder<Object> getDefaultOutputCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
-//        return (Coder<Object>) Core.nippy_.deref();
-//    }
+    @SuppressWarnings("unchecked") @Override
+    public Coder<Object> getAccumulatorCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
+        Object reducefCoder = getMeta_(this.reducefVar, Core.kw_th_coder_);
+        if (reducefCoder != null)
+            return (Coder<Object>) reducefCoder;
+        return super.getAccumulatorCoder(registry, inputCoder);
+    }
+
+    @SuppressWarnings("unchecked") @Override
+    public Coder<Object> getDefaultOutputCoder(CoderRegistry registry, Coder inputCoder) throws CannotProvideCoderException {
+        Object extractfCoder = getMeta_(this.extractfVar, Core.kw_th_coder_);
+        if (extractfCoder != null)
+            return (Coder<Object>) extractfCoder;
+        return super.getDefaultOutputCoder(registry, inputCoder);
+    }
 
     private void readObject(java.io.ObjectInputStream stream)
         throws IOException, ClassNotFoundException {
@@ -55,6 +65,13 @@ public final class TCombine extends Combine.CombineFn<Object, Object, Object> {
         this.extractf = (IFn) extractfVar.deref();
         this.combinef = (IFn) combinefVar.deref();
         this.reducef = (IFn) reducefVar.deref();
+    }
+
+    @Nullable
+    private static Object getMeta_(IMeta meta, Object key) {
+        if (meta.meta() != null)
+            return meta.meta().valAt(key);
+        return null;
     }
 
 }

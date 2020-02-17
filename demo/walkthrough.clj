@@ -252,6 +252,10 @@
 
 (.run example-pipeline) ;; => logs "2.0"
 
+;; Note: combiner reducef and extractf support :th/coder annotations (see below for
+;;   explanation of thurber's clojure support; and see demo/simple/view_as_map.clj for
+;;   a combine example where these annotations are necessary.
+
 ;;;; NAMING TRANSFORMS
 
 ;; thurber and Beam infer sensible transform names when no explicit name

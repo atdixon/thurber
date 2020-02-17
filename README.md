@@ -89,6 +89,7 @@ INFO thurber - you: 2
 ## Documentation
 
 * [Code Walkthrough](./demo/walkthrough.clj)
+* [Troubleshooting](./doc/troubleshooting.md)
 * [Beam Tutorial](./doc/beam-tutorial.md)
 
 ## Demos

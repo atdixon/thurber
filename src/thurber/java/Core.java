@@ -2,6 +2,7 @@ package thurber.java;
 
 import clojure.java.api.Clojure;
 import clojure.lang.IFn;
+import clojure.lang.Keyword;
 import clojure.lang.Var;
 import org.apache.beam.sdk.coders.Coder;
 
@@ -11,8 +12,6 @@ public class Core {
 
     static final IFn concat = Clojure.var("clojure.core", "concat");
 
-    static final IFn reduce = Clojure.var("clojure.core", "reduce");
-
     static {
         require.invoke(Clojure.read("thurber"));
     }
@@ -21,6 +20,10 @@ public class Core {
 
     @SuppressWarnings("unchecked")
     public static Coder<Object> nippy_deref_ = (Coder<Object>) nippy_.deref();
+
+    // -- keywords --
+
+    static final Keyword kw_th_coder_ = Keyword.intern("th", "coder");
 
     // -- thread locals --
 
@@ -32,7 +35,6 @@ public class Core {
             require.invoke(var.ns.name);
     }
 
-    private Core() {
-    }
+    private Core() {}
 
 }
