@@ -11,7 +11,7 @@
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline PipelineResult)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
-           (clojure.lang MapEntry Keyword IPersistentMap ITransientCollection)
+           (clojure.lang MapEntry Keyword IPersistentMap)
            (org.apache.beam.sdk.transforms.windowing BoundedWindow)
            (org.apache.beam.sdk.coders KvCoder CustomCoder)
            (java.io DataInputStream InputStream DataOutputStream OutputStream)
