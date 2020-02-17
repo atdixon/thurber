@@ -58,6 +58,7 @@
     * ensure eg 0.0.2-alpha2-SNAPSHOT, then
     * lein javac (sanity check compile), lein test, then
     * lein release :alpha
+    * last release had to add :checksum :ignore to repositories
 
 
 snippets
