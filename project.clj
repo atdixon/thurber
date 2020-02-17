@@ -8,8 +8,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"
             :distribution :repo}
 
-  :deploy-repositories [["releases" {:url "https://repo.clojars.org" :creds :gpg}]
-                        ["snapshots" {:url "https://repo.clojars.org" :creds :gpg}]]
+  :deploy-repositories [["releases" {:url "https://repo.clojars.org" :checksum :ignore :creds :gpg}]
+                        ["snapshots" {:url "https://repo.clojars.org" :checksum :ignore :creds :gpg}]]
 
   :java-source-paths ["src"]
   :javac-options ["-target" "1.8" "-source" "1.8"]
