@@ -6,8 +6,8 @@
 ;; `th/proxy*` can be leveraged to cover scenarios not yet covered by
 ;;   thurber's primary api.
 ;;
-;; Here, we need to provide to serialized args to a CombineFn much
-;;   like `th/partial*` supports for ParDo functions.
+;; Here, we need to provide serializable args to a CombineFn much
+;;   like `th/partial*` supports providing args to ParDo Clojure functions.
 ;;
 ;; @see https://github.com/atdixon/thurber/issues/3
 ;;
