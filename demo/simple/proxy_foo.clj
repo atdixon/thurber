@@ -3,6 +3,7 @@
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.transforms Combine Combine$CombineFn)))
 
+;;
 ;; `th/proxy*` can be leveraged to cover scenarios not yet covered by
 ;;   thurber's primary api.
 ;;
@@ -10,6 +11,9 @@
 ;;   like `th/partial*` supports providing args to ParDo Clojure functions.
 ;;
 ;; @see https://github.com/atdixon/thurber/issues/3
+;;
+;; Basically `th/proxy*` wraps a Clojure proxy such that it can be serialized
+;;   as is required by certain interfaces in Beam (like CombineFn).
 ;;
 
 (def combine-with-config-args
