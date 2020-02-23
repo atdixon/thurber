@@ -119,6 +119,12 @@
 ;; This logs 3, 6, and 9:
 (.run simple-pipeline)
 
+;; CAUTION:
+;;
+;;   thurber does not currently capture and relay lexical closure
+;;   bindings; you must explicitly provide serializable values to inline
+;;   functions using `th/partial` (see next section).
+
 
 ;;;; PARTIAL FUNCTIONS
 

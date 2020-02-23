@@ -63,7 +63,4 @@
       #'sink*)))
 
 (defn demo! []
-  (->
-    (th/create-pipeline)
-    (build-pipeline!)
-    (.run)))
+  (-> (th/create-pipeline) build-pipeline! .run))

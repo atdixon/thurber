@@ -1,10 +1,10 @@
 * fn* exceptions nice messages
+    - or, capture &env and relay ref'd lexical scope bindings
+        via partial*
 * coder issues help
 
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
-
-* clojurey map view provider etc
 
 * new TimerFamily feature!
 
@@ -12,10 +12,6 @@
 * bump to latest beam release
     * validate dataflow demos after doing this
 * switch to namespaced keys ::th/xform etc
-* instead of kv->clj, support destructuring KVs first-class,
-    including KV<?,Iterable> and KV<?,CoGbkResult>, so that
-    for these latter types we can convert Beam's lazy Iterables
-    to lazy Clojure seqs!!!
 
 * UnboundedSeqSource needed? or facade beam's own facilities
 
