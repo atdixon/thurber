@@ -21,12 +21,8 @@
         (-> (TextIO/read)
           (.from ^String (:input-file conf)))
         word-count.basic/count-words-xf
-        ;; We cannot access lexical scope from th/fn*
-        ;; functions; th/partial must be used to pass
-        ;; state; we pre-compile our regex Pattern here;
-        ;; state we pass must be Serializable; Pattern is.
-        (th/partial
-          (th/fn* filter-per-pattern [^Pattern pattern ^KV elem]
+        (let [pattern (re-pattern (:filter-pattern conf))]
+          (th/fn* filter-per-pattern [^KV elem]
             (let [[key- val-] (th/kv->clj* elem)]
               (if (re-matches pattern key-)
                 (do
@@ -35,8 +31,7 @@
                   elem)
                 (do
                   (.inc unmatched-words)
-                  (log/tracef "Did not match: %s" key-)))))
-          (re-pattern (:filter-pattern conf)))
+                  (log/tracef "Did not match: %s" key-))))))
         #'th/kv->clj)
       (as-> result
         (-> (PAssert/that result)
@@ -48,5 +43,4 @@
     (th/create-pipeline
       {:custom-config {:input-file "demo/word_count/lorem.txt"
                        :filter-pattern "pain|pleasure"}})
-    (build-pipeline!)
-    (.run)))
+    build-pipeline! .run))

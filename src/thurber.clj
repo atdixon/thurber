@@ -121,27 +121,6 @@
 
 ;; --
 
-(defmacro inline [fn-form]
-  {:pre [(= #'clojure.core/fn (resolve (first fn-form)))
-         (symbol? (second fn-form))]}
-  (let [name-sym (second fn-form)
-        name (name name-sym)
-        arglists (if (vector? (first (nnext fn-form)))
-                   [(first (nnext fn-form))]
-                   (into [] (map first (nnext fn-form))))]
-    (intern *ns* (with-meta name-sym
-                   (merge (into {} (map (fn [[k v]] [k (eval v)]))
-                            (meta name-sym)) {:arglists arglists})) (eval fn-form))
-    ;; we use raw symbol here so as to not rewrite metadata of symbol
-    ;; interned while compiling:
-    `(intern ~*ns* (symbol ~name))))
-
-(defmacro fn* [& body]
-  `(inline
-     (fn ~@body)))
-
-;; --
-
 (defn proxy-with-signature* [proxy-var sig & args]
   (TProxy/create proxy-var sig (into-array Object args)))
 
@@ -192,6 +171,40 @@
             (map count (:arglists (meta fn-var)))))
     1 ^SerializableFunction (TSerializableFunction. fn-var args)
     2 ^SerializableBiFunction (TSerializableBiFunction. fn-var args)))
+
+;; --
+
+(defmacro inline [fn-form]
+  {:pre [(= #'clojure.core/fn (resolve (first fn-form)))
+         (symbol? (second fn-form))]}
+  (let [name-sym (second fn-form)
+        name- (name name-sym)
+        [arglists bodies] (if (vector? (nth fn-form 2))
+                            [[(nth fn-form 2)] [(drop 3 fn-form)]]
+                            [(into [] (map first (nnext fn-form)))
+                             (into [] (map rest (nnext fn-form)))])
+        lex-syms (->> bodies
+                   walk/macroexpand-all
+                   (tree-seq coll? seq)
+                   (clojure.core/filter simple-symbol?)
+                   (clojure.core/filter (set (keys &env)))
+                   set vec)
+        arglists' (map #(into lex-syms %) arglists)
+        fn-form' (list* `fn (map list* arglists' bodies))]
+    (intern *ns*
+      (with-meta name-sym
+        (assoc (into {} (map (fn [[k v]] [k (eval v)]))
+                 (meta name-sym)) :arglists arglists))
+      (eval fn-form'))
+    ;; we use raw symbol here so as to not rewrite metadata of symbol
+    ;; interned while compiling:
+    (if (empty? lex-syms)
+      `(intern ~*ns* (symbol ~name-))
+      `(thurber/partial (intern ~*ns* (symbol ~name-)) ~@lex-syms))))
+
+(defmacro fn* [& body]
+  `(inline
+     (fn ~@body)))
 
 ;; --
 

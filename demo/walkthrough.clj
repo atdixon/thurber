@@ -119,6 +119,22 @@
 ;; This logs 3, 6, and 9:
 (.run simple-pipeline)
 
+;; `thurber/fn*` can use *Serializable values* from lexical bindings;
+;;   under the covers `thurber/partial` is used to relay the binding
+;;   values to the serializable function. (It is necessary that the
+;;   referenced lexically-scoped values are Serializable.)
+
+(def simple-pipeline
+  (let [multiplier 4]
+    (doto (th/create-pipeline)
+      (th/apply! data-source
+        (th/fn* multiply-fn [elem]
+          (* elem multiplier))
+        log-sink))))
+
+;; This logs 4, 8, and 12:
+(.run simple-pipeline)
+
 ;; CAUTION:
 ;;
 ;;   thurber does not currently capture and relay lexical closure

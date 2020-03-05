@@ -3,6 +3,8 @@
         via partial*
 * coder issues help
 
+* Allow Combine can take and invoke partials
+
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
 
