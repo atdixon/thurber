@@ -57,5 +57,4 @@
       ;; Config provided this way must be serializable to JSON (per Beam).
       {:target-parallelism 25
        :custom-config {:input-file "demo/word_count/lorem.txt"}})
-    (build-pipeline!)
-    (.run)))
+    build-pipeline! .run))

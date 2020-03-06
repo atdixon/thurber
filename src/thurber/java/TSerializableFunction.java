@@ -7,6 +7,7 @@ import org.apache.beam.sdk.transforms.SerializableFunction;
 
 import java.io.IOException;
 
+@Deprecated
 public final class TSerializableFunction implements SerializableFunction<Object, Object> {
 
     private final Var fn;

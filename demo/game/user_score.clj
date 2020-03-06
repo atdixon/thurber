@@ -28,9 +28,6 @@
     ;; vectors. See format-row.
     #'th/kv->clj))
 
-(defn- format-row [[k v]]
-  (format "user: %s, total_score: %d" k v))
-
 (defn- ->write-to-text-xf [output row-formatter]
   (th/compose "write-to-text"
     row-formatter
@@ -46,7 +43,9 @@
           (.from ^String (:input conf)))
         #'parse-event
         (->extract-sum-and-score-xf :user)
-        (->write-to-text-xf (:output conf) #'format-row)))))
+        (->write-to-text-xf (:output conf)
+          (th/fn* format-row [[k v]]
+            (format "user: %s, total_score: %d" k v)))))))
 
 (defn demo! [& args]
   (-> (create-pipeline

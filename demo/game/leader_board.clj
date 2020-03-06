@@ -24,7 +24,7 @@
   (th/compose "game-events"
     (-> (PubsubIO/readStrings)
       (.withTimestampAttribute GameConstants/TIMESTAMP_ATTRIBUTE)
-      (.fromTopic topic))
+      (.fromTopic ^String topic))
     #'game.user-score/parse-event))
 
 ;; --

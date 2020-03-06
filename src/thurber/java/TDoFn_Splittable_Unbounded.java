@@ -10,44 +10,29 @@ import org.apache.beam.sdk.transforms.splittabledofn.RestrictionTracker;
 @DoFn.UnboundedPerElement
 public final class TDoFn_Splittable_Unbounded extends DoFn<Object, Object> {
 
-    private final Var fnVar, initFnVar, trackerFnVar;
-    private transient IFn fn, initFn, trackerFn;
-    private final Object[] args;
+    private final TFn tfn, initTfn, trackerTfn;
 
-    public TDoFn_Splittable_Unbounded(Var fnVar, Var initFnVar, Var trackerFn) {
-        this(fnVar, initFnVar, trackerFn, new Object[]{});
-    }
-
-    public TDoFn_Splittable_Unbounded(Var fnVar, Var initFnVar, Var trackerFnVar, Object[] args) {
-        this.fnVar = fnVar;
-        this.initFnVar = initFnVar;
-        this.trackerFnVar = trackerFnVar;
-        this.args = args;
-    }
-
-    @Setup
-    public void setup() {
-        Core.require_(fnVar, initFnVar, trackerFnVar);
-        this.fn = (IFn) fnVar.deref();
-        this.initFn = (IFn) initFnVar.deref();
-        this.trackerFn = (IFn) trackerFnVar.deref();
+    public TDoFn_Splittable_Unbounded(TFn tfn, TFn initTfn, TFn trackerTfn) {
+        this.tfn = tfn;
+        this.initTfn = initTfn;
+        this.trackerTfn = trackerTfn;
     }
 
     @ProcessElement
     public ProcessContinuation process(PipelineOptions options, ProcessContext context,
                                        RestrictionTracker<Object, Object> tracker) {
         return (ProcessContinuation)
-            TDoFn.execute(fn, args, options, context, null, null, null, null, null, tracker);
+            TDoFn.execute(tfn, options, context, null, null, null, null, null, tracker);
     }
 
     @GetInitialRestriction
     public Object getInitialRestriction(Object element) {
-        return initFn.invoke(element);
+        return initTfn.invoke_(element);
     }
 
     @NewTracker
     public <R extends RestrictionTracker<Object, ?>> R getNewTracker(Object restriction) {
-        return (R) trackerFn.invoke(restriction);
+        return (R) trackerTfn.invoke_(restriction);
     }
 
     // todo custom restriction coder

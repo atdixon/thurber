@@ -3,7 +3,7 @@
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
            (org.apache.beam.sdk.transforms Count Combine GroupByKey WithTimestamps WithKeys View Mean FlatMapElements)
-           (org.apache.beam.sdk.coders VarLongCoder)
+           (org.apache.beam.sdk.coders VarLongCoder StringUtf8Coder)
            (org.apache.beam.sdk.values KV PCollectionView TypeDescriptors)
            (org.apache.beam.sdk.transforms.windowing PaneInfo$Timing)
            (org.joda.time Duration Instant)))
@@ -23,7 +23,7 @@
                      :custom-config {:my-custom-config-val 5}})
 
 ;; (The :custom-config key is well-known to thurber and used to provide
-;; dynamic options to pipelines. More on this later.)
+;;  dynamic options to pipelines. More on this later.)
 
 
 ;;;; SOURCES
@@ -98,6 +98,8 @@
 ;; In this case #'times-two is serialized  and sent to Beam cluster nodes.
 ;; When the var is deserialized, thurber ensures that it is rebound to
 ;; its function.
+;;
+;; Transform functions can also be inlined for readability...
 
 
 ;;;; INLINE FUNCTIONS
@@ -152,6 +154,9 @@
 ;; This logs 4, 8, and 12:
 (.run simple-pipeline)
 
+;; Fun fact: when a `thurber/fn*` references lexical bindings, `th/partial`
+;;   is created under-the-covers with the referenced lexical bindings as
+;;   the partial args.
 
 ;;;; MULTIPLE OUTPUTS
 
@@ -320,6 +325,10 @@
 (defn ^{:th/coder th/nippy-kv} convert-to-kv [element]
   (KV/of (:color element) element))
 
+;; ...as can inline (`th/fn*`) functions:
+(th/fn* ^{:th/coder (StringUtf8Coder/of)} to-str [elem]
+  (str elem))
+
 ;;;; CONTEXT BINDINGS
 
 ;; thurber ParDo functions return value(s) to be emitted downstream but
@@ -421,13 +430,13 @@
   "<missing>")
 
 ;; When we have an element, we will reset the timer to the next millisecond:
-(defn- emit-missing [^KV elem]
+(defn- ^{:th/coder th/nippy} emit-missing [^KV elem]
   (-> (th/*event-timer)
     (.offset (Duration/millis 1))
     (.setRelative))
   (.getValue elem))
 
-(def example-pipeline
+(def example-pipeline-x
   (doto (th/create-pipeline)
     (th/apply!
       (th/create (remove odd? (range 10)))
@@ -435,15 +444,14 @@
                            (th/fn* to-instant [n]
                              (Instant. n))))
       (WithKeys/of "global")
-      {:th/xform #'emit-missing
-       :th/timer-fn #'emit-missing-timer
-       :th/timer-params [(Instant. 10)]
-       :th/coder th/nippy}
+      (th/with-timer
+        #'emit-missing
+        (th/partial #'emit-missing-timer (Instant. 10)))
       #'th/log)))
 
 ;; This logs 0, "<missing>", 2, "<missing>", 4, "<missing>", 6,
 ;;   "<missing>", 8, "<missing>"  in some order:
-(.run example-pipeline)
+(.run example-pipeline-x)
 
 ;;;; JAVA INTEROP
 
@@ -468,6 +476,9 @@
       #'th/log)))
 
 (.run example-pipeline) ;; logs 1, 2, 2, 3, 3, 3 in some order
+
+;; Note: `th/ser-fn` is an alias for `th/partial` and so can take partial
+;;   (Serializable) args.
 
 ;;;; FACADE
 

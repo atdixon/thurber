@@ -1,10 +1,6 @@
 package thurber.java;
 
-import clojure.lang.ArraySeq;
-import clojure.lang.IFn;
 import clojure.lang.ISeq;
-import clojure.lang.RT;
-import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.state.BagState;
 import org.apache.beam.sdk.state.Timer;
@@ -14,32 +10,20 @@ import org.apache.beam.sdk.transforms.splittabledofn.RestrictionTracker;
 import org.apache.beam.sdk.transforms.windowing.BoundedWindow;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
+
+import static java.lang.String.format;
 
 public final class TDoFn extends DoFn<Object, Object> {
 
-    private final Var fnVar;
-    private transient IFn fn;
-    private final Object[] args;
+    private final TFn tfn;
 
-    public TDoFn(Var fnVar) {
-        this(fnVar, new Object[]{});
-    }
-
-    public TDoFn(Var fnVar, Object... args) {
-        this.fnVar = fnVar;
-        this.args = args;
-    }
-
-    @Setup
-    public void setup() {
-        Core.require_(fnVar);
-        this.fn = (IFn) fnVar.deref();
+    public TDoFn(TFn tfn) {
+        this.tfn = tfn;
     }
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window) {
-        execute(fn, args, options, context, window, null, null, null, null, null);
+        execute(this.tfn, options, context, window, null, null, null, null, null);
     }
 
     // --
@@ -48,7 +32,7 @@ public final class TDoFn extends DoFn<Object, Object> {
     private static final ThreadLocal<TDoFnContext> context
         = (ThreadLocal<TDoFnContext>) Core.context_.deref();
 
-    static Object execute(IFn fn, Object[] args,
+    static Object execute(TFn tfn,
                           PipelineOptions options,
                           @Nullable ProcessContext processContext,
                           BoundedWindow window,
@@ -62,15 +46,9 @@ public final class TDoFn extends DoFn<Object, Object> {
         try {
             @Nullable final Object rv;
             if (processContext == null) {
-                rv = args.length == 0
-                    ? fn.invoke() : fn.applyTo(RT.seq(args));
-            } else if (args.length == 0) {
-                rv = fn.invoke(processContext.element());
+                rv = tfn.invoke_();
             } else {
-                // assert: args.length > 0
-                final Object[] args_ = Arrays.copyOf(args, args.length + 1);
-                args_[args.length] = processContext.element();
-                rv = fn.applyTo(ArraySeq.create(args_));
+                rv = tfn.invoke_(processContext.element());
             }
             if (rv instanceof ProcessContinuation)
                 return rv;
@@ -88,6 +66,9 @@ public final class TDoFn extends DoFn<Object, Object> {
                     useContext.output(rv);
                 }
             }
+        } catch (Exception t) {
+            throw new RuntimeException(
+                format("Execution failure from: %s", tfn), t);
         } finally {
             context.set(null);
         }

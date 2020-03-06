@@ -7,6 +7,7 @@ import org.apache.beam.sdk.transforms.SerializableBiFunction;
 
 import java.io.IOException;
 
+@Deprecated
 public final class TSerializableBiFunction implements SerializableBiFunction<Object, Object, Object> {
 
     private final Var fn;

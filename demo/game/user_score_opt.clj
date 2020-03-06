@@ -60,9 +60,6 @@
     (th/partial #'->field-and-score-kv field)
     (Sum/integersPerKey)))
 
-(defn- ^{:th/coder (StringUtf8Coder/of)} format-row [^KV kv]
-  (format "user: %s, total_score: %d" (.getKey kv) (.getValue kv)))
-
 (defn- ->write-to-text-xf [output row-formatter]
   (th/compose "write-to-text"
     row-formatter
@@ -78,7 +75,9 @@
           (.from ^String (:input conf)))
         #'parse-event
         (->extract-sum-and-score-xf :user)
-        (->write-to-text-xf (:output conf) #'format-row)))))
+        (->write-to-text-xf (:output conf)
+          (th/fn* ^{:th/coder (StringUtf8Coder/of)} format-row [^KV kv]
+            (format "user: %s, total_score: %d" (.getKey kv) (.getValue kv))))))))
 
 (defn demo! [& args]
   (-> (create-pipeline

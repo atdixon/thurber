@@ -1,9 +1,6 @@
-* fn* exceptions nice messages
-    - or, capture &env and relay ref'd lexical scope bindings
-        via partial*
 * coder issues help
 
-* Allow Combine can take and invoke partials
+* splittable via thurber api
 
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
