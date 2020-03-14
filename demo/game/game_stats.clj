@@ -40,11 +40,11 @@
 (defn- ->spammers-view [fixed-window-duration ^PCollection user-events]
   (let [windowed-user-scores (th/apply!
                                user-events
-                               {:th/name "fixed-windows-user"
-                                :th/xform
-                                (Window/into
-                                  (FixedWindows/of
-                                    (Duration/standardMinutes fixed-window-duration)))})
+                               (th/with-name
+                                 (Window/into
+                                   (FixedWindows/of
+                                     (Duration/standardMinutes fixed-window-duration)))
+                                 "fixed-windows-user"))
         spammy-users (->spammy-users windowed-user-scores)]
     (th/apply! spammy-users (View/asMap))))
 
@@ -101,16 +101,15 @@
         spammers-view (->spammers-view (:fixed-window-duration custom-conf) user-scores)]
 
     (th/apply! raw-events
-      {:th/name "window-into-fixed-windows"
-       :th/xform
-       (Window/into
-         (FixedWindows/of
-           (Duration/standardMinutes (:fixed-window-duration custom-conf))))}
+      (th/with-name
+        (Window/into
+          (FixedWindows/of
+            (Duration/standardMinutes (:fixed-window-duration custom-conf))))
+        "window-into-fixed-windows")
       (th/filter
-        (th/inline
-          (fn filter-out-spammers [^PCollectionView spammers-view game-event]
-            (let [spammers (.sideInput (th/*process-context) spammers-view)]
-              (contains? spammers (:user game-event))))) spammers-view)
+        (th/fn* filter-out-spammers [game-event]
+          (let [spammers (.sideInput (th/*process-context) ^PCollectionView spammers-view)]
+            (contains? spammers (:user game-event)))))
       (game.user-score/->extract-sum-and-score-xf :team)
       (game.leader-board/->write-to-big-query-xf "write-team-sums"
         gcp-project (:dataset custom-conf)
@@ -118,24 +117,23 @@
         team-score-row-schema #'->team-score-row))
 
     (th/apply! user-scores
-      {:th/name "window-into-sessions"
-       :th/xform
-       (Window/into
-         (Sessions/withGapDuration
-           (Duration/standardMinutes (:session-gap custom-conf))))}
+      (th/with-name
+        (Window/into
+          (Sessions/withGapDuration
+            (Duration/standardMinutes (:session-gap custom-conf))))
+        "window-into-sessions")
       (Combine/perKey
         (th/combiner
-          (th/inline (fn existential-combine [& _] 0))))
-      (th/inline
-        (fn user-session-info [elem]
-          (let [w ^IntervalWindow (th/*element-window)]
-            (-> (Duration. (.start w) (.end w))
-              (.toPeriod) (.toStandardMinutes) (.getMinutes)))))
-      {:th/name "window-to-extract-session-mean"
-       :th/xform
-       (Window/into
-         (FixedWindows/of
-           (Duration/standardMinutes (:user-activity-window-duration custom-conf))))}
+          (th/fn* existential-combine [& _] 0)))
+      (th/fn* user-session-info [elem]
+        (let [w ^IntervalWindow (th/*element-window)]
+          (-> (Duration. (.start w) (.end w))
+            (.toPeriod) (.toStandardMinutes) (.getMinutes))))
+      (th/with-name
+        (Window/into
+          (FixedWindows/of
+            (Duration/standardMinutes (:user-activity-window-duration custom-conf))))
+        "window-to-extract-session-mean")
       (-> (Mean/globally)
         (.withoutDefaults))
       (game.leader-board/->write-to-big-query-xf "write-average-session-length"

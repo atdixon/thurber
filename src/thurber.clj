@@ -7,7 +7,7 @@
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction Filter SerializableBiFunction)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TSerializableFunction TProxy TCombine TSerializableBiFunction TDoFn_Stateful TDoFnContext)
+           (thurber.java TDoFn TCoder TOptions TProxy TCombine TDoFn_Stateful TDoFnContext TFn)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline PipelineResult)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
@@ -129,48 +129,55 @@
 
 ;; --
 
+(defn- ^TFn ->TFn [f]
+  (cond
+    (instance? TFn f) f
+    (var? f) (TFn. f)))
+
+;; --
+
 (defn- var->name [v]
   (or (:th/name (meta v)) (:name (meta v)))
   (-> v meta :name name))
 
 (defn ^PTransform partial
-  [fn-var-or-name & args]
-  (if (string? fn-var-or-name)
-    {:th/name fn-var-or-name
-     :th/xform (first args)
-     :th/params (rest args)}
-    {:th/name (format "partial:%s" (var->name fn-var-or-name))
-     :th/xform fn-var-or-name
-     :th/params args}))
+  [fn-like-or-name & args]
+  (let [[explicit-name fn- args-]
+        (if (string? fn-like-or-name)
+          [fn-like-or-name (first args) (rest args)]
+          [nil fn-like-or-name args])
+        use-name (cond
+                   (some? explicit-name) explicit-name
+                   (var? fn-) (format "partial:%s" (var->name fn-like-or-name)))]
+    (cond-> (-> fn- ->TFn (.partial_ (into-array Object args-)))
+      use-name (vary-meta merge {:th/name use-name}))))
+
+(def ser-fn partial)
 
 (defn- kw-impl
   [^Keyword kw elem] (kw elem))
 
-(defn- filter-impl [pred-fn & args]
-  (when (apply pred-fn args)
-    (last args)))
+(defn- filter-impl [^TFn pred-fn & args]
+  (when (.apply_ pred-fn args) (last args)))
 
-(defn ^PTransform filter [pred-var-ser-fn-or-name & args]
-  (if (string? pred-var-ser-fn-or-name)
-    (if (instance? SerializableFunction (first args))
-      {:th/name pred-var-ser-fn-or-name
-       :th/xform (Filter/by ^SerializableFunction (first args))}
-      {:th/name pred-var-ser-fn-or-name
-       :th/xform #'filter-impl
-       :th/params args})
-    (if (instance? SerializableFunction pred-var-ser-fn-or-name)
-      {:th/name pred-var-ser-fn-or-name
-       :th/xform (Filter/by ^SerializableFunction pred-var-ser-fn-or-name)}
-      {:th/name (format "filter:%s" (var->name pred-var-ser-fn-or-name))
-       :th/xform #'filter-impl
-       :th/params (conj args pred-var-ser-fn-or-name)})))
-
-(defn ser-fn [fn-var & args]
-  (case (apply max
-          (clojure.core/filter #{1 2}
-            (map count (:arglists (meta fn-var)))))
-    1 ^SerializableFunction (TSerializableFunction. fn-var args)
-    2 ^SerializableBiFunction (TSerializableBiFunction. fn-var args)))
+(defn filter [fn-like-or-name & args]
+  (let [[explicit-name fn- args-]
+        (if (string? fn-like-or-name)
+          [fn-like-or-name (first args) (rest args)]
+          [nil fn-like-or-name args])
+        use-name (cond
+                   (some? explicit-name) explicit-name
+                   (var? fn-) (format "filter:%s" (var->name fn-like-or-name)))
+        tfn- (-> fn- ->TFn)]
+    ;; Note: we promote all args from provided fn-like to args passed to filter-impl;
+    ;;   these top-level args are used by thurber to infer tags, side-inputs etc so
+    ;;   they must be seen at the top level; filter-impl will relay them to the fn-.
+    (cond-> (-> #'filter-impl ->TFn
+              (.partial_
+                (into-array Object
+                  (concat [(.withoutPartialArgs tfn-)]
+                    args- (.-partialArgs tfn-)))))
+      use-name (vary-meta merge {:th/name use-name}))))
 
 ;; --
 
@@ -189,12 +196,15 @@
                    (clojure.core/filter simple-symbol?)
                    (clojure.core/filter (set (keys &env)))
                    set vec)
+        ;; note: as we are prepending lexical scope symbols even
+        ;;  if we have one that is masked by an actual arg sym
+        ;;  it will precede and therefore still be masked.
         arglists' (map #(into lex-syms %) arglists)
         fn-form' (list* `fn (map list* arglists' bodies))]
     (intern *ns*
       (with-meta name-sym
-        (assoc (into {} (map (fn [[k v]] [k (eval v)]))
-                 (meta name-sym)) :arglists arglists))
+        (into {} (map (fn [[k v]] [k (eval v)]))
+          (meta name-sym)))
       (eval fn-form'))
     ;; we use raw symbol here so as to not rewrite metadata of symbol
     ;; interned while compiling:
@@ -215,19 +225,19 @@
       :th/inherit (.getCoder prev)
       c)))
 
-(defn- ->pardo [xf params timer-params stateful? timer-fn]
-  (let [tags (into [] (clojure.core/filter #(instance? TupleTag %) params))
-        views (into [] (clojure.core/filter #(instance? PCollectionView %)) params)]
+(defn- ->pardo [^TFn xf-fn stateful? ^TFn timer-fn]
+  (let [tags (into [] (clojure.core/filter #(instance? TupleTag %) (.-partialArgs xf-fn)))
+        views (into [] (clojure.core/filter #(instance? PCollectionView %)) (.-partialArgs xf-fn))
+        side-inputs (into [] (clojure.core/filter #(instance? PCollectionView %)) (.-partialArgs xf-fn))]
     (cond-> (ParDo/of (if (or stateful? timer-fn)
-                        (TDoFn_Stateful. xf timer-fn (object-array params) (object-array timer-params))
-                        (TDoFn. xf (object-array params))))
+                        (TDoFn_Stateful. xf-fn timer-fn)
+                        (TDoFn. xf-fn)))
       (not-empty tags)
       (.withOutputTags ^TupleTag (first tags)
-                       (reduce (fn [^TupleTagList acc ^TupleTag tag]
-                                 (.and acc tag)) (TupleTagList/empty) (rest tags)))
+        (reduce (fn [^TupleTagList acc ^TupleTag tag]
+                  (.and acc tag)) (TupleTagList/empty) (rest tags)))
       (not-empty views)
-      (.withSideInputs
-       ^Iterable (into [] (clojure.core/filter #(instance? PCollectionView %)) params)))))
+      (.withSideInputs ^Iterable side-inputs))))
 
 (defn- set-coder! [pcoll-or-tuple coder]
   (cond
@@ -243,14 +253,13 @@
   ([xf] (normalize-xf xf {}))
   ([xf override]
    (cond
+     (instance? TFn xf) (let [normal (merge {:th/name (var->name (.-fnVar ^TFn xf)) :th/coder :th/inherit-or-nippy}
+                                       (select-keys (meta xf) [:th/name :th/coder :th/timer-fn :th/stateful]) override)]
+                          (assoc normal :th/xform (->pardo xf (:th/stateful normal) (->TFn (:th/timer-fn normal)))))
      (instance? PTransform xf) (merge {:th/xform xf} override)
      (keyword? xf) (normalize-xf (partial (str xf) #'kw-impl xf) override)
-     (map? xf) (normalize-xf (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; note: maps may nest.
-     (var? xf) (let [normal (merge {:th/name (var->name xf) :th/coder :th/inherit-or-nippy}
-                              (select-keys (meta xf) [:th/name :th/coder :th/params :th/timer-fn :th/timer-params
-                                                      :th/stateful]) override)]
-                 (assoc normal :th/xform (->pardo xf (:th/params normal) (:th/timer-params normal) (:th/stateful normal)
-                                           (:th/timer-fn normal)))))))
+     (map? xf) (normalize-xf (:th/xform xf) (merge (dissoc xf :th/xform) override)) ;; ...b/c maps may nest.
+     (var? xf) (normalize-xf (TFn. xf) override))))
 
 (defn apply!
   "Apply transforms to an input (Pipeline, PCollection, PBegin ...);
@@ -294,8 +303,20 @@
   ([reducef] (combiner reducef reducef))
   ([combinef reducef] (combiner #'identity combinef reducef))
   ([extractf combinef reducef]
-   {:pre [(var? extractf) (var? combinef) (var? reducef)]}
-   (TCombine. extractf combinef reducef)))
+   {:pre [(or (var? extractf) (instance? TFn extractf))
+          (or (var? combinef) (instance? TFn reducef))
+          (or (var? combinef) (instance? TFn reducef))]}
+   (TCombine. (->TFn extractf) (->TFn combinef) (->TFn reducef))))
+
+;; --
+
+(defn with-timer [fn-like timer-fn-like]
+  {:th/xform fn-like
+   :th/timer-fn timer-fn-like})
+
+(defn with-name [xf-like name-]
+  {:th/name name-
+   :th/xform xf-like})
 
 ;; --
 

@@ -8,7 +8,6 @@
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)
            (com.google.api.services.bigquery.model TableSchema TableRow)
-           (org.apache.beam.sdk.transforms.windowing IntervalWindow)
            (org.apache.beam.sdk.values KV)))
 
 ;; --

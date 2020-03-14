@@ -1,7 +1,5 @@
 package thurber.java;
 
-import clojure.lang.IFn;
-import clojure.lang.Var;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.state.BagState;
 import org.apache.beam.sdk.state.StateSpec;
@@ -18,10 +16,8 @@ import javax.annotation.Nullable;
 
 public final class TDoFn_Stateful extends DoFn<Object, Object> {
 
-    private final Var fnVar;
-    @Nullable private final Var timerFnVar;
-    private transient IFn fn, timerFn;
-    private final Object[] args, timerArgs;
+    private final TFn tfn;
+    @Nullable private final TFn timerTfn;
 
     @StateId("val-state")
     private final StateSpec<ValueState<Object>> stateSpec =
@@ -35,34 +31,22 @@ public final class TDoFn_Stateful extends DoFn<Object, Object> {
     private final TimerSpec timerSpec
         = TimerSpecs.timer(TimeDomain.EVENT_TIME);
 
-    public TDoFn_Stateful(Var fnVar, Var timerFnVar, Object[] args, Object[] timerArgs) {
-        this.fnVar = fnVar;
-        this.timerFnVar = timerFnVar;
-        this.args = args;
-        this.timerArgs = timerArgs;
-    }
-
-    @Setup
-    public void setup() {
-        Core.require_(fnVar);
-        this.fn = (IFn) fnVar.deref();
-        if (this.timerFnVar != null) {
-            Core.require_(timerFnVar);
-            this.timerFn = (IFn) timerFnVar.deref();
-        }
+    public TDoFn_Stateful(TFn tfn, @Nullable TFn timerTfn) {
+        this.tfn = tfn;
+        this.timerTfn = timerTfn;
     }
 
     @ProcessElement
     public void processElement(PipelineOptions options, ProcessContext context, BoundedWindow window,
                                @StateId("val-state") ValueState<Object> state, @StateId("bag-state") BagState<Object> bagState,
                                @TimerId("timer") Timer timer) {
-        TDoFn.execute(fn, args, options, context, window, state, bagState, timer, null, null);
+        TDoFn.execute(this.tfn, options, context, window, state, bagState, timer, null, null);
     }
 
     @OnTimer("timer")
     public void onTimer(PipelineOptions options, OnTimerContext context, @TimerId("timer") Timer timer,
                         @StateId("val-state") ValueState<Object> state, @StateId("bag-state") BagState<Object> bagState) {
-        TDoFn.execute(timerFn, timerArgs, options, null, null, state, bagState, timer, context, null);
+        TDoFn.execute(this.timerTfn, options, null, null, state, bagState, timer, context, null);
     }
 
 }

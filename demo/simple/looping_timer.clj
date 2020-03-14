@@ -19,7 +19,7 @@
 (defn- sink* [elem]
   (log/infof "Value is %s timestamp is %s" elem (.timestamp (th/*process-context))))
 
-(defn- looping-stateful-fn [^KV kv-elem]
+(defn- ^{:th/coder th/nippy-kv} looping-stateful-fn [^KV kv-elem]
   (let [{:keys [elem-key current-timer-val :as curr-state]} (.read (th/*value-state))
         next-timer-val (-> (.timestamp (th/*process-context))
                          (.plus (Duration/standardMinutes 1)))
@@ -52,14 +52,15 @@
       (Window/into
         (FixedWindows/of (Duration/standardMinutes 1)))
       (Sum/longsPerKey)
-      (Window/into (GlobalWindows.))
-      {:th/xform #'looping-stateful-fn
-       :th/timer-fn #'looping-stateful-on-timer-fn
-       :th/timer-params [(Instant/parse "2000-01-01T00:04:00Z")]
-       :th/coder th/nippy-kv}
-      (Window/into
-        (FixedWindows/of (Duration/standardMinutes 1)))
-      (Sum/longsPerKey)
+      (th/with-name
+        (Window/into (GlobalWindows.)) "window-1")
+      (th/with-timer #'looping-stateful-fn
+        (th/partial #'looping-stateful-on-timer-fn
+          (Instant/parse "2000-01-01T00:04:00Z")))
+      (th/with-name
+        (Window/into
+          (FixedWindows/of (Duration/standardMinutes 1))) "window-2")
+      (th/with-name (Sum/longsPerKey) "sum-2")
       #'sink*)))
 
 (defn demo! []

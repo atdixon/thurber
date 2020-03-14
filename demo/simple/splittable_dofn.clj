@@ -1,9 +1,8 @@
 (ns simple.splittable-dofn
   (:require [thurber :as th]
-            [clj-time.coerce :as c]
-            [clojure.tools.logging :as log])
+            [clj-time.coerce :as c])
   (:import (org.apache.beam.sdk.transforms ParDo DoFn$ProcessContinuation Count Combine)
-           (thurber.java TDoFn_Splittable_Unbounded)
+           (thurber.java TDoFn_Splittable_Unbounded TFn)
            (org.apache.beam.sdk.io.range OffsetRange)
            (org.apache.beam.sdk.transforms.splittabledofn OffsetRangeTracker)
            (org.joda.time Duration Instant)
@@ -102,7 +101,10 @@
 
 (def thingy-xf
   (ParDo/of
-    (TDoFn_Splittable_Unbounded. #'process-restriction #'init-restriction, #'get-tracker)))
+    (TDoFn_Splittable_Unbounded.
+      (TFn. #'process-restriction)
+      (TFn. #'init-restriction)
+      (TFn. #'get-tracker))))
 
 (defn ^Pipeline build-pipeline! [^Pipeline pipeline]
   (doto pipeline

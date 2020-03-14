@@ -27,5 +27,4 @@
   (->
     (th/create-pipeline
         {:custom-config {:prefix "message: "}})
-    (build-pipeline!)
-    (.run)))
+    build-pipeline! .run))
