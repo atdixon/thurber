@@ -19,7 +19,7 @@
                     data-stream
                     (th/filter
                       (th/fn* is-min? [elem]
-                        (= elem (.sideInput (th/*process-context) min-view))))
+                        (= elem (th/*side-input min-view))))
                     (Count/globally))]
     (-> min-count
       (PAssert/that) (.containsInAnyOrder [4]))

@@ -5,11 +5,13 @@
 
 ;; Simple demonstration of using side inputs.
 
+;; Filters stream to just those values below the overall mean of the stream.
+
 (defn- sink* [elem]
   (log/info elem))
 
 (defn- below-mean? [mean-view elem]
-  (let [mean (.sideInput (th/*process-context) mean-view)]
+  (let [mean (th/*side-input mean-view)]
     (< elem mean)))
 
 (defn- build-pipeline! [pipeline]

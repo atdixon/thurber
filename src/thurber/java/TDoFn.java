@@ -29,8 +29,8 @@ public final class TDoFn extends DoFn<Object, Object> {
     // --
 
     @SuppressWarnings("unchecked")
-    private static final ThreadLocal<TDoFnContext> context
-        = (ThreadLocal<TDoFnContext>) Core.context_.deref();
+    private static final ThreadLocal<TFnContext> thContext
+        = (ThreadLocal<TFnContext>) Core.context_.deref();
 
     static Object execute(TFn tfn,
                           PipelineOptions options,
@@ -41,8 +41,8 @@ public final class TDoFn extends DoFn<Object, Object> {
                           @Nullable Timer timer,
                           @Nullable OnTimerContext timerContext,
                           @Nullable RestrictionTracker<Object, Object> restrictionTracker) {
-        context.set(new TDoFnContext(
-            options, processContext, window, state, bagState, timer, timerContext, restrictionTracker));
+        thContext.set(new TFnContext(
+            options, processContext, window, state, bagState, timer, timerContext, null, restrictionTracker));
         try {
             @Nullable final Object rv;
             if (processContext == null) {
@@ -70,7 +70,7 @@ public final class TDoFn extends DoFn<Object, Object> {
             throw new RuntimeException(
                 format("Execution failure from: %s", tfn), t);
         } finally {
-            context.set(null);
+            thContext.set(null);
         }
         return null;
     }

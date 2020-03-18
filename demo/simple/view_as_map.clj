@@ -26,7 +26,7 @@
 (defn- ^{:th/coder th/nippy} augment-element [map-view ^KV elem]
   (if (has-wavelength? elem)
     elem
-    (let [^Map m (.sideInput (th/*process-context) map-view)
+    (let [^Map m (th/*side-input map-view)
           [k v] (th/kv->clj* elem)]
       (KV/of k (assoc v :wavelength-nm (m k))))))
 
