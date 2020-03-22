@@ -20,7 +20,7 @@
 
 (defn- filter-user-scores [^PCollectionView global-mean-score ^KV user-score]
   (let [score ^Integer (.getValue user-score)
-        gmc ^Double (.sideInput (th/*process-context) global-mean-score)]
+        gmc ^Double (th/*side-input global-mean-score)]
     (> score (* gmc score-weight))))
 
 (defn- ->spammy-users [^PCollection user-scores]
@@ -108,7 +108,7 @@
         "window-into-fixed-windows")
       (th/filter
         (th/fn* filter-out-spammers [game-event]
-          (let [spammers (.sideInput (th/*process-context) ^PCollectionView spammers-view)]
+          (let [spammers (th/*side-input spammers-view)]
             (contains? spammers (:user game-event)))))
       (game.user-score/->extract-sum-and-score-xf :team)
       (game.leader-board/->write-to-big-query-xf "write-team-sums"

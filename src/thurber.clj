@@ -5,9 +5,9 @@
             [clojure.walk :as walk]
             [taoensso.nippy :as nippy]
             [clojure.tools.logging :as log])
-  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction Filter SerializableBiFunction)
+  (:import (org.apache.beam.sdk.transforms PTransform Create ParDo DoFn$ProcessContext DoFn$OnTimerContext Combine$CombineFn SerializableFunction Filter SerializableBiFunction CombineWithContext$Context)
            (java.util Map)
-           (thurber.java TDoFn TCoder TOptions TProxy TCombine TDoFn_Stateful TDoFnContext TFn)
+           (thurber.java TDoFn TCoder TOptions TProxy TCombine TDoFn_Stateful TFnContext TFn)
            (org.apache.beam.sdk.values PCollection KV PCollectionView TupleTag TupleTagList PCollectionTuple)
            (org.apache.beam.sdk Pipeline PipelineResult)
            (org.apache.beam.sdk.options PipelineOptionsFactory PipelineOptions)
@@ -107,17 +107,25 @@
           (swap! mem assoc (.getJobName opts) ret)
           ret)))))
 
-(defn ^PipelineOptions *pipeline-options [] (.-pipelineOptions ^TDoFnContext (.get tl-context)))
-(defn ^IPersistentMap *custom-config [] (get-custom-config-memo (*pipeline-options)))
-(defn ^DoFn$ProcessContext *process-context [] (.-processContext ^TDoFnContext (.get tl-context)))
-(defn ^BoundedWindow *element-window [] (.-elementWindow ^TDoFnContext (.get tl-context)))
-(defn ^ValueState *value-state [] (.-valueState ^TDoFnContext (.get tl-context)))
-(defn ^BagState *bag-state [] (.-bagState ^TDoFnContext (.get tl-context)))
-(defn ^Timer *event-timer [] (.-eventTimer ^TDoFnContext (.get tl-context)))
-(defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TDoFnContext (.get tl-context)))
-(defn ^RestrictionTracker *restriction-tracker [] (.-restrictionTracker ^TDoFnContext (.get tl-context)))
+(defn ^PipelineOptions *pipeline-options [] (.-pipelineOptions ^TFnContext (.get tl-context)))
+(defn ^IPersistentMap *custom-config [] (some-> (*pipeline-options) get-custom-config-memo))
+(defn ^DoFn$ProcessContext *process-context [] (.-processContext ^TFnContext (.get tl-context)))
+(defn ^BoundedWindow *element-window [] (.-elementWindow ^TFnContext (.get tl-context)))
+(defn ^ValueState *value-state [] (.-valueState ^TFnContext (.get tl-context)))
+(defn ^BagState *bag-state [] (.-bagState ^TFnContext (.get tl-context)))
+(defn ^Timer *event-timer [] (.-eventTimer ^TFnContext (.get tl-context)))
+(defn ^DoFn$OnTimerContext *timer-context [] (.-timerContext ^TFnContext (.get tl-context)))
+(defn ^CombineWithContext$Context *combine-context [] (.-combineContext ^TFnContext (.get tl-context)))
+(defn ^RestrictionTracker *restriction-tracker [] (.-restrictionTracker ^TFnContext (.get tl-context)))
 
 (defn ^"[Ljava.lang.Object;" *proxy-args [] (.get tl-proxy-args))
+
+;; --
+
+(defn *side-input [^PCollectionView v]
+  (or
+    (some-> (*process-context) (.sideInput v))
+    (some-> (*combine-context) (.sideInput v))))
 
 ;; --
 

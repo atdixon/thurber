@@ -272,6 +272,9 @@
 
 (.run example-pipeline) ;; => logs "2.0"
 
+;; Note: Combiner functions can also access PipelineOptions and side inputs. See
+;;   demo/combine_with_side_input.clj for such an example.
+
 ;; Note: combiner reducef and extractf support :th/coder annotations (see below for
 ;;   explanation of thurber's clojure support; and see demo/simple/view_as_map.clj for
 ;;   a combine example where these annotations are necessary.
@@ -367,8 +370,8 @@
 ;; Side inputs are used as additional inputs to ParDo transforms.
 ;; As `PCollectionView`s are serializable we can pass them as `partial`
 ;; args to any ParDo Clojure function:
-(defn- above-mean? [^PCollectionView mean-view elem]
-  (let [mean (.sideInput (th/*process-context) mean-view)]
+(defn- above-mean? [mean-view elem]
+  (let [mean (th/*side-input mean-view)]
     (> elem mean)))
 
 ;; This pipeline use a side view to counts all values in our data stream
