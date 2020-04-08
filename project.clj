@@ -52,7 +52,9 @@
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
            [[org.apache.kafka/kafka-clients "2.4.0"]
-            [org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]]}
+            [org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]
+            [org.apache.beam/beam-sdks-java-io-jdbc ~version-apache-beam]
+            [org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform ~version-apache-beam]
                [org.apache.beam/beam-runners-google-cloud-dataflow-java ~version-apache-beam]]}})
