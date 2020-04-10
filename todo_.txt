@@ -1,3 +1,5 @@
+* avoid ThreadLocal/set get for functions that don't require? (or are hinted to not require?)
+
 * coder issues help
 
 * splittable via thurber api

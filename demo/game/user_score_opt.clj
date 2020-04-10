@@ -10,6 +10,9 @@
            (java.io OutputStream InputStream)
            (java.nio ByteBuffer)))
 
+;; Optimization #1: To minimize payload of message bytes we will use avro for ser/de instead of
+;;    Nippy on schema-less Clojure maps.
+
 (defrecord GameActionInfo [user team score timestamp])
 
 (lan/def-record-schema game-action-info-schema
@@ -38,13 +41,17 @@
 
 (defn- ^{:th/coder game-action-info-coder} parse-event [^String elem]
   (try
-    (let [[user team score ts :as parts] (.split elem "," -1)]
+    ;; Optimization #2: Use low-level primitive array operations on a type-hinted array to avoid
+    ;;    overhead with Clojure's polymorphic suboptimal aget, etc.
+    (let [^"[Ljava.lang.Object;" parts (.split elem "," -1)]
       (if (>= (alength parts) 4)
         (->GameActionInfo
-          (.trim ^String user)
-          (.trim ^String team)
-          (Integer/parseInt (.trim ^String score))
-          (Long/parseLong (.trim ^String ts)))
+          ;; Optimization #2/a: clojure.core/aget here needs the array type hint above to pick the optimal
+          ;;    primitive invocation!
+          (.trim ^String (aget parts 0))
+          (.trim ^String (aget parts 1))
+          (Integer/parseInt (.trim ^String (aget parts 2)))
+          (Long/parseLong (.trim ^String (aget parts 3))))
         (log/warnf "parse error on %s, missing part" elem)))
     (catch NumberFormatException e
       (log/warnf "parse error on %s, %s" elem (.getMessage e)))))
@@ -76,6 +83,8 @@
         #'parse-event
         (->extract-sum-and-score-xf :user)
         (->write-to-text-xf (:output conf)
+          ;; Optimization #3: Use explicit String coder where we know we have Strings,
+          ;;    instead of default nippy coder.
           (th/fn* ^{:th/coder (StringUtf8Coder/of)} format-row [^KV kv]
             (format "user: %s, total_score: %d" (.getKey kv) (.getValue kv))))))))
 

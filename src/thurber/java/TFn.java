@@ -70,6 +70,9 @@ public class TFn implements
 
     // -- invoke/apply --
 
+    // NOTE: the following code has been optimized to a degree for hot execution; be careful of any refactoring
+    //  attempts to clean up the code!
+
     public Object invoke_() {
         if (partialArgs.length == 0)
             return fn.invoke();
@@ -85,24 +88,49 @@ public class TFn implements
     public Object invoke_(Object one, Object two) {
         if (partialArgs.length == 0)
             return fn.invoke(one, two);
+
         return invoke_(new Object[]{one, two});
     }
 
     public Object invoke_(Object[] appendArgs) {
-        if (partialArgs.length == 0) {
-            if (appendArgs.length == 0)
-                return fn.invoke();
-            else if (appendArgs.length == 1)
-                return fn.invoke(appendArgs[0]);
-            else
+        switch (partialArgs.length) {
+            case 0:
+                switch (appendArgs.length) {
+                    case 0: return fn.invoke();
+                    case 1: return fn.invoke(appendArgs[0]);
+                    case 2: return fn.invoke(appendArgs[0], appendArgs[1]);
+                    case 3: return fn.invoke(appendArgs[0], appendArgs[1], appendArgs[2]);
+                }
                 return fn.applyTo(RT.seq(appendArgs));
-        } else if (appendArgs.length == 0) {
-            if (partialArgs.length == 1)
-                return fn.invoke(partialArgs[0]);
-            return fn.applyTo(RT.seq(partialArgs));
-        } else {
-            return fn.applyTo((ISeq) Core.concat.invoke(RT.seq(partialArgs), RT.seq(appendArgs)));
+            case 1:
+                switch (appendArgs.length) {
+                    case 0: return fn.invoke(partialArgs[0]);
+                    case 1: return fn.invoke(partialArgs[0], appendArgs[0]);
+                    case 2: return fn.invoke(partialArgs[0], appendArgs[0], appendArgs[1]);
+                    case 3: return fn.invoke(partialArgs[0], appendArgs[0], appendArgs[1], appendArgs[2]);
+                }
+                break;
+            case 2:
+                switch (appendArgs.length) {
+                    case 0: return fn.invoke(partialArgs[0], partialArgs[1]);
+                    case 1: return fn.invoke(partialArgs[0], partialArgs[1], appendArgs[0]);
+                    case 2: return fn.invoke(partialArgs[0], partialArgs[1], appendArgs[0], appendArgs[1]);
+                    case 3: return fn.invoke(partialArgs[0], partialArgs[1], appendArgs[0], appendArgs[1], appendArgs[2]);
+                }
+                break;
+            case 3:
+                switch (appendArgs.length) {
+                    case 0: return fn.invoke(partialArgs[0], partialArgs[1], partialArgs[2]);
+                    case 1: return fn.invoke(partialArgs[0], partialArgs[1], partialArgs[2], appendArgs[0]);
+                    case 2: return fn.invoke(partialArgs[0], partialArgs[1], partialArgs[2], appendArgs[0], appendArgs[1]);
+                    case 3: return fn.invoke(partialArgs[0], partialArgs[1], partialArgs[2], appendArgs[0], appendArgs[1], appendArgs[2]);
+                }
+                break;
+            default:
+                if (appendArgs.length == 0)
+                    return fn.applyTo(RT.seq(partialArgs));
         }
+        return fn.applyTo((ISeq) Core.concat.invoke(RT.seq(partialArgs), RT.seq(appendArgs)));
     }
 
     public Object apply_(ISeq appendArgs) {
