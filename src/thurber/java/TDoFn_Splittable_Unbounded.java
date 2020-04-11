@@ -26,12 +26,12 @@ public final class TDoFn_Splittable_Unbounded extends DoFn<Object, Object> {
     }
 
     @GetInitialRestriction
-    public Object getInitialRestriction(Object element) {
+    public Object getInitialRestriction(@Element Object element) {
         return initTfn.invoke_(element);
     }
 
     @NewTracker
-    public <R extends RestrictionTracker<Object, ?>> R getNewTracker(Object restriction) {
+    public <R extends RestrictionTracker<Object, ?>> R getNewTracker(/*@Restriction*/ Object restriction) {
         return (R) trackerTfn.invoke_(restriction);
     }
 

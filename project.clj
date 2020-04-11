@@ -55,6 +55,11 @@
             [org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]
             [org.apache.beam/beam-sdks-java-io-jdbc ~version-apache-beam]
             [org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
+   :staging-repos {:repositories [["repository.apache.org/staging"
+                                   {:url
+                                    "https://repository.apache.org/content/repositories/orgapachebeam-1101"
+                                    ;; "https://repository.apache.org/content/groups/staging/"
+                                    }]]}
    :dataflow {:dependencies
               [[org.apache.beam/beam-sdks-java-io-google-cloud-platform ~version-apache-beam]
                [org.apache.beam/beam-runners-google-cloud-dataflow-java ~version-apache-beam]]}})

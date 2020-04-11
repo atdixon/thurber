@@ -30,7 +30,11 @@ public final class TCombine extends CombineWithContext.CombineFnWithContext<Obje
     }
 
     @Override public Object createAccumulator(CombineWithContext.Context context) {
-        thContext.set(new TFnContext(context.getPipelineOptions(), context));
+        // Note: for now some contexts (eg, when using merging/session windows) do not
+        //   support accessing context state like pipeline options; so we will require
+        //   pipeline authors that need pipeline options to get them through the
+        //   CombineWithContext.Context themselves when it is safe to do so.
+        thContext.set(new TFnContext(null, context));
         try {
             return this.reducef.invoke_();
         } finally {
@@ -39,7 +43,8 @@ public final class TCombine extends CombineWithContext.CombineFnWithContext<Obje
     }
 
     @Override public Object addInput(Object acc, Object input, CombineWithContext.Context context) {
-        thContext.set(new TFnContext(context.getPipelineOptions(), context));
+        // @see note in createAccumulator about null PipelineOptions here:
+        thContext.set(new TFnContext(null, context));
         try {
             return this.reducef.invoke_(acc, input);
         } finally {
@@ -48,7 +53,8 @@ public final class TCombine extends CombineWithContext.CombineFnWithContext<Obje
     }
 
     @Override public Object mergeAccumulators(Iterable<Object> accs, CombineWithContext.Context context) {
-        thContext.set(new TFnContext(context.getPipelineOptions(), context));
+        // @see note in createAccumulator about null PipelineOptions here:
+        thContext.set(new TFnContext(null, context));
         try {
             return this.combinef.apply_(RT.seq(accs));
         } finally {
@@ -57,7 +63,8 @@ public final class TCombine extends CombineWithContext.CombineFnWithContext<Obje
     }
 
     @Override public Object extractOutput(Object acc, CombineWithContext.Context context) {
-        thContext.set(new TFnContext(context.getPipelineOptions(), context));
+        // @see note in createAccumulator about null PipelineOptions here:
+        thContext.set(new TFnContext(null, context));
         try {
             return this.extractf.invoke_(acc);
         } finally {

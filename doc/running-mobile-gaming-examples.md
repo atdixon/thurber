@@ -133,13 +133,13 @@ with your GCP account:
     * `bq mk --project_id thurber-demo --dataset thurber_demo_game`
 * Deploy:
 
-        lein with-profile +demo,+dataflow run -m game.game-stats/demo! \
-          --appName="thurber-demo-leaderboard" \
-          --jobName="thurber-demo-leaderboard-$(date +%s)" \
-          --runner=DataflowRunner \
-          --region=us-central1 --project=thurber-demo \
-          --gcpTempLocation=gs://thurber-demo/gcp-temp \
-          --filesToStage=$(ls target/*-standalone.jar)
+        lein with-profile +demo,+dataflow run -m game.stateful-team-score/demo! \
+            --appName="thurber-demo-stateful-team-score" \
+            --jobName="thurber-demo-stateful-team-score-$(date +%s)" \
+            --runner=DataflowRunner \
+            --region=us-central1 --project=thurber-demo \
+            --gcpTempLocation=gs://thurber-demo/gcp-temp \
+            --filesToStage=$(ls target/*-standalone.jar)
 * In a separate terminal window, generate streaming data:
 
         lein with-profile +demo,+dataflow run -m game.injector \

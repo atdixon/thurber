@@ -8,7 +8,8 @@
            (org.apache.beam.sdk Pipeline)
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)
            (com.google.api.services.bigquery.model TableSchema TableRow)
-           (org.apache.beam.sdk.values KV)))
+           (org.apache.beam.sdk.values KV)
+           (org.apache.beam.sdk.io.gcp.bigquery TableRowJsonCoder)))
 
 ;; --
 
@@ -19,7 +20,7 @@
        (game.leader-board/->table-field-schema "total_score" "INTEGER")
        (game.leader-board/->table-field-schema "processing_time" "STRING")])))
 
-(defn- ->team-score-row [[k v]]
+(defn- ^{:th/coder (TableRowJsonCoder/of)} ->team-score-row [[k v]]
   (doto (TableRow.)
     (.set "team" k)
     (.set "total_score" v)
@@ -48,6 +49,7 @@
           (format "projects/%s/topics/%s" gcp-project (:topic custom-conf)))
         (th/partial "map-team-as-key" #'th/->kv :team)
         (th/partial #'update-team-score (:threshold-score custom-conf))
+        #'th/kv->clj
         (game.leader-board/->write-to-big-query-xf "write-team-leaders"
           gcp-project (:dataset custom-conf)
           (str (:leaderboard-table-name custom-conf) "_team_leader")

@@ -12,7 +12,9 @@
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)
            (org.apache.beam.sdk.transforms Sum Values Mean View Combine)
            (org.apache.beam.sdk.values PCollection KV PCollectionView)
-           (com.google.api.services.bigquery.model TableSchema TableRow)))
+           (com.google.api.services.bigquery.model TableSchema TableRow)
+           (org.apache.beam.sdk.coders VarIntCoder)
+           (org.apache.beam.sdk.io.gcp.bigquery TableRowJsonCoder)))
 
 ;; --
 
@@ -58,7 +60,7 @@
        (game.leader-board/->table-field-schema "window_start" "STRING")
        (game.leader-board/->table-field-schema "processing_time" "STRING")])))
 
-(defn- ->team-score-row [[k v]]
+(defn- ^{:th/coder (TableRowJsonCoder/of)} ->team-score-row [[k v]]
   (doto (TableRow.)
     (.set "team" k)
     (.set "total_score" v)
@@ -76,7 +78,7 @@
       [(game.leader-board/->table-field-schema "window_start" "STRING")
        (game.leader-board/->table-field-schema "mean_duration" "FLOAT")])))
 
-(defn- ->session-length-row [[k v]]
+(defn- ^{:th/coder (TableRowJsonCoder/of)} ->session-length-row [v]
   (doto (TableRow.)
     (.set "window_start"
       (->> ^IntervalWindow (th/*element-window) (.start)
@@ -125,7 +127,7 @@
       (Combine/perKey
         (th/combiner
           (th/fn* existential-combine [& _] 0)))
-      (th/fn* user-session-info [elem]
+      (th/fn* ^{:th/coder (VarIntCoder/of)} user-session-info [^KV elem_]
         (let [w ^IntervalWindow (th/*element-window)]
           (-> (Duration. (.start w) (.end w))
             (.toPeriod) (.toStandardMinutes) (.getMinutes))))

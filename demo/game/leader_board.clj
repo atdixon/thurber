@@ -10,7 +10,7 @@
            (org.apache.beam.examples.complete.game.utils GameConstants)
            (org.apache.beam.examples.common ExampleUtils)
            (org.apache.beam.sdk Pipeline)
-           (org.apache.beam.sdk.io.gcp.bigquery BigQueryIO BigQueryIO$Write$CreateDisposition BigQueryIO$Write$WriteDisposition)
+           (org.apache.beam.sdk.io.gcp.bigquery BigQueryIO BigQueryIO$Write$CreateDisposition BigQueryIO$Write$WriteDisposition TableRowJsonCoder)
            (com.google.api.services.bigquery.model TableReference TableRow TableSchema TableFieldSchema)
            (org.apache.beam.sdk.extensions.gcp.options GcpOptions)))
 
@@ -55,7 +55,7 @@
        (->table-field-schema "processing_time" "STRING")
        (->table-field-schema "timing" "STRING")])))
 
-(defn- ->team-score-row [[k v]]
+(defn- ^{:th/coder (TableRowJsonCoder/of)} ->team-score-row [[k v]]
   (doto (TableRow.)
     (.set "team" k)
     (.set "total_score" v)
@@ -89,7 +89,7 @@
        (->table-field-schema "total_score" "INTEGER")
        (->table-field-schema "processing_time" "STRING")])))
 
-(defn- ->user-score-row [[k v]]
+(defn- ^{:th/coder (TableRowJsonCoder/of)} ->user-score-row [[k v]]
   (doto (TableRow.)
     (.set "user" k)
     (.set "total_score" v)
