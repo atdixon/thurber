@@ -120,10 +120,10 @@ These are fully functional ports. They require deployment to GCP Dataflow:
 
 ## Make It Fast
 
-First make your pipeline work. Then, optionally or as required, optimize:
+First make your pipeline work. Then optimize if needed:
 
-* Use type hints. Streaming/big data implies hot code paths. Use Clojure [type hints](https://clojure.org/reference/java_interop#typehints) 
-liberally within your stream functions.
+* Use Clojure [**type hints**](https://clojure.org/reference/java_interop#typehints) 
+liberally within your stream functions. Streaming/big data implies hot code paths.
     - Helpful aliases for certain type hints can be found listed [here](https://clojure.org/reference/java_interop#TypeAliases).
 * Use Clojure's [high-performance primitive operations](https://clojure.org/reference/java_interop#primitives) where
   possible.
