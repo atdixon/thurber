@@ -113,12 +113,12 @@ to Clojure/thurber.
 
 ### Mobile Gaming Examples
 
-Beam's [Mobile Gaming Examples](https://beam.apache.org/get-started/mobile-gaming-example/)
+Beam's Mobile Gaming Examples (documented [here](https://beam.apache.org/get-started/mobile-gaming-example/))
 have been ported to Clojure using thurber.
 
 These are fully functional ports. They require deployment to GCP Dataflow: 
 
-* [How to Run Beam Mobile Gaming Examples](./doc/running-mobile-gaming-examples.md)
+* How to Run Beam Mobile Gaming Examples (thurber): [Detailed Instructions](./doc/running-mobile-gaming-examples.md)
 
 ## Make It Fast
 
