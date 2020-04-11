@@ -1,6 +1,17 @@
 * avoid ThreadLocal/set get for functions that don't require? (or are hinted to not require?)
 
-* user score opt avro VS defrecord serializing (via nippy eg?)
+
+** ??????? remove lancaster and use AvroSchema/of
+    - just need to be able to make AvroSchema from record AND types tho?
+    - not AvroSchema needs default construct (defrecord no)
+    - nah need to separate schema def
+        - but do what lancaster does and make all nilable?
+    (let [baos (ByteArrayOutputStream.)
+          me (->GameActionInfo "foobar" "bunky" (int 123) (System/currentTimeMillis))]
+      (.encode (AvroCoder/of GameActionInfo (Schema/parse (:json-schema game-action-info-schema))) me baos)
+      (count (.toByteArray baos)))
+
+
 
 * coder issues help
 

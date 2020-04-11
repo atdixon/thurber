@@ -6,9 +6,10 @@
            (org.apache.beam.sdk.values KV)
            (org.apache.beam.sdk.transforms Sum)
            (thurber.java TCoder)
-           (org.apache.beam.sdk.coders CustomCoder KvCoder StringUtf8Coder VarIntCoder)
+           (org.apache.beam.sdk.coders CustomCoder KvCoder StringUtf8Coder VarIntCoder AvroCoder)
            (java.io OutputStream InputStream)
-           (java.nio ByteBuffer)))
+           (java.nio ByteBuffer)
+           (org.apache.avro Schema Schema$Parser)))
 
 ;;
 ;; Optimization #1: To minimize payload of message bytes (and therefore storage demands for the batch or
@@ -35,15 +36,15 @@
 (def ^:private game-action-info-coder-impl
   (proxy [CustomCoder] []
     (encode [val ^OutputStream out]
-      (let [record-bytes ^"[B" (lan/serialize game-action-info-schema val)
+      (let [^bytes record-bytes (lan/serialize game-action-info-schema val)
             size (count record-bytes)]
         (.write out (-> (ByteBuffer/allocate 4) (.putInt size) (.array)))
         (.write out record-bytes)))
     (decode [^InputStream in]
-      (let [size-bytes (byte-array 4)
+      (let [^bytes size-bytes (byte-array 4)
             _ (.read in size-bytes)
             size (.getInt (ByteBuffer/wrap size-bytes))
-            record-bytes (byte-array size)
+            ^bytes record-bytes (byte-array size)
             _ (.read in record-bytes)]
         (lan/deserialize-same game-action-info-schema record-bytes)))))
 
