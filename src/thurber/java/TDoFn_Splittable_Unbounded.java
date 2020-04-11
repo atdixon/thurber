@@ -1,7 +1,5 @@
 package thurber.java;
 
-import clojure.lang.IFn;
-import clojure.lang.Var;
 import org.apache.beam.sdk.coders.Coder;
 import org.apache.beam.sdk.options.PipelineOptions;
 import org.apache.beam.sdk.transforms.DoFn;
