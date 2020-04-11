@@ -10,8 +10,19 @@
            (java.io OutputStream InputStream)
            (java.nio ByteBuffer)))
 
-;; Optimization #1: To minimize payload of message bytes we will use avro for ser/de instead of
-;;    Nippy on schema-less Clojure maps.
+;;
+;; Optimization #1: To minimize payload of message bytes (and therefore storage demands for the batch or
+;;    streaming thurber job, we will use Avro for ser/de instead of Nippy.
+;;
+;;    Nippy will happily ser/de defrecord types; each message payload will contain the full classname
+;;    of the defrecord as overhead. In many cases, especially for even types with many fields, simply using
+;;    nippy plus defrecord will be a sufficient optimization.
+;;
+;;    For payload with few fields a simple Clojure map will beat the defrecord serialization.
+;;
+;;    Avro is the most optimal choice as neither field names nor a type name needs to be encoded
+;;    in each payload.
+;;
 
 (defrecord GameActionInfo [user team score timestamp])
 
