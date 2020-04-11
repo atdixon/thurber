@@ -131,10 +131,10 @@ liberally within your stream functions. Streaming/big data implies hot code path
 * Compare **gaming demos** [user-score](./demo/game/user_score.clj) and [user-score-opt](./demo/game/user_score_opt.clj);
     the latter is an optimized version of the former pipeline. (The optimized version here compares with the
     performance of the Java demo in Beam source.)
-* Be explicit which **JVM/JDK runtime version** is executing your code. Mature JVM versions typically have stronger
-  performance enhancements than earlier versions.
-    - (Note: Dataflow, for example, will pick a JVM/JDK version for worker node runtimes based on the Java version you
-      use to launch your pipeline.)
+* Be explicit which **JVM/JDK version** is executing your code at runtime. Mature JVM versions have stronger
+  performance in many cases than earlier versions.
+    - (Note: Dataflow will pick a JVM/JDK version for your runtime/worker nodes based on the Java version you
+      use to launch your pipeline!)
 * **Profile** your pipeline!
     - If deploying to GCP, use [Dataflow profiling](https://medium.com/google-cloud/profiling-dataflow-pipelines-ddbbef07761d)
 to zero in on areas to optimize.
