@@ -142,11 +142,6 @@ to zero in on areas to optimize.
     - (Note: This rarely if ever should be needed to achieve optimal performance.)
 * In general (this is not Clojure/thurber-specific) you should understand Beam "fusion" and when to **break fusion** to achieve 
   greater linear scalability. More info [here](https://beam.apache.org/contribute/ptransform-style-guide/#performance).
-    
-NOTE aggressive optimizations may buy you some bottom-line cost improvements. Beam achieves linear scalability and
-often the slight overhead of clean Clojure code trumps the cost-savings of an aggressive optimization. Aggressive 
-optimizations of Beam jobs is more likely to save you bottom-line resource cost over throughput/latency so keep this
-in mind as you prioritize dev/testing cost &amp; effort of aggressive tuning efforts. 
 
 ## References
 
