@@ -124,24 +124,23 @@ First make your pipeline work. Then optimize if needed:
 
 * Use Clojure [**type hints**](https://clojure.org/reference/java_interop#typehints) 
 liberally within your stream functions. Streaming/big data implies hot code paths.
-    - Helpful aliases for certain type hints can be found listed [here](https://clojure.org/reference/java_interop#TypeAliases).
-* Use Clojure's [high-performance primitive operations](https://clojure.org/reference/java_interop#primitives) where
-  possible.
-* See Clojure's [optimization](https://clojure.org/reference/java_interop#optimization) advice.
-    - For example, `aget` is explicitly overloaded for primitive arrays and type hinting primitive and Object arrays
-      may be essential to get the optimal invocation. 
-* Compare [user-score](./demo/game/user_score.clj) with [user-score-opt](./demo/game/user_score_opt.clj) in the 
-  [demo](./demo) directory for what an optimization pass might look like.
-    - This optimized version compares with the performance of the same Java demo implemented by Beam.
-* Be explicit which JVM/JDK runtime version is executing your code. More mature JVM versions typically have stronger
+    - A helpful list of **type hint aliases** can be found [here](https://clojure.org/reference/java_interop#TypeAliases).
+* Use Clojure's high-performance [**primitive operations**](https://clojure.org/reference/java_interop#primitives).
+* Follow Clojure's [**optimization tips**](https://clojure.org/reference/java_interop#optimization).
+    - For example: `aget` is explicitly overloaded for primitive arrays &mdash; type hinting is key here. 
+* Compare **gaming demos** [user-score](./demo/game/user_score.clj) and [user-score-opt](./demo/game/user_score_opt.clj);
+    the latter is an optimized version of the former pipeline. (The optimized version here compares with the
+    performance of the Java demo in Beam source.)
+* Be explicit which **JVM/JDK runtime version** is executing your code. Mature JVM versions typically have stronger
   performance enhancements than earlier versions.
-    - Dataflow, for example, will pick a JVM/JDK version for worker node runtimes based on the Java version you
-      use to launch your pipeline.
-* Profile, profile, profile.
+    - (Note: Dataflow, for example, will pick a JVM/JDK version for worker node runtimes based on the Java version you
+      use to launch your pipeline.)
+* **Profile** your pipeline!
     - If deploying to GCP, use [Dataflow profiling](https://medium.com/google-cloud/profiling-dataflow-pipelines-ddbbef07761d)
 to zero in on areas to optimize.
-* Fallback to Java for sensitive code, if unsure. (This rarely if ever should be needed to achieve optimal performance.)
-* In general (this is not Clojure/thurber-specific) you should understand Beam "fusion" and when to break fusion to achieve 
+* When in doubt or in a bind, you can always fall back to Java for sensitive code paths. 
+    - (Note: This rarely if ever should be needed to achieve optimal performance.)
+* In general (this is not Clojure/thurber-specific) you should understand Beam "fusion" and when to **break fusion** to achieve 
   greater linear scalability. More info [here](https://beam.apache.org/contribute/ptransform-style-guide/#performance).
     
 NOTE aggressive optimizations may buy you some bottom-line cost improvements. Beam achieves linear scalability and
