@@ -147,7 +147,7 @@ but you may benefit from tuning your own pipeline code:
 liberally within your stream functions.
     - The cost of Java method invocation-by-reflection can be very high, and type hints can have a large
       impact in these cases.
-    - A helpful list of **type hint aliases** can be found [here](https://clojure.org/reference/java_interop#TypeAliases).
+    - A helpful list of primitive type hint aliases can be found [here](https://clojure.org/reference/java_interop#TypeAliases).
 * Use Clojure's high-performance [**primitive operations**](https://clojure.org/reference/java_interop#primitives).
 * Follow Clojure's [**optimization tips**](https://clojure.org/reference/java_interop#optimization).
     - For example: `aget` is explicitly overloaded for primitive arrays &mdash; type hinting is key here. 
