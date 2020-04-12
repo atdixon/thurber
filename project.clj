@@ -41,7 +41,6 @@
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dev [:demo
          :extra
-         :experimental
          {:source-paths ["demo"]
           :dependencies
           [;; -- test deps --
@@ -55,9 +54,9 @@
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
            [[org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]
-            [org.apache.beam/beam-sdks-java-io-jdbc ~version-apache-beam]
-            [org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
-   :experimental {:dependencies []}
+            [org.apache.beam/beam-sdks-java-io-jdbc ~version-apache-beam]]}
+   :extra-unused {:dependencies
+                  [[org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
    :staging-repos {:repositories [["repository.apache.org/staging"
                                    {:url
                                     "https://repository.apache.org/content/repositories/orgapachebeam-1101"
