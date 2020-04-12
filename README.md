@@ -150,13 +150,13 @@ liberally within your stream functions. Streaming/big data implies hot code path
     performance of the Java demo in Beam source.)
 * Be explicit which **JVM/JDK version** is executing your code at runtime. Mature JVM versions have stronger
   performance in many cases than earlier versions.
-    - (Note: Dataflow will pick a JVM/JDK version for your runtime/worker nodes based on the Java version you
-      use to launch your pipeline!)
+    - Note: Dataflow will pick a JVM/JDK version for your runtime/worker nodes based on the Java version you
+      use to launch your pipeline!
 * **Profile** your pipeline!
     - If deploying to GCP, use [Dataflow profiling](https://medium.com/google-cloud/profiling-dataflow-pipelines-ddbbef07761d)
 to zero in on areas to optimize.
 * When in doubt or in a bind, you can always fall back to Java for sensitive code paths. 
-    - (Note: This rarely if ever should be needed to achieve optimal performance.)
+    - Note: This rarely if ever should be needed to achieve optimal performance.
 * In general (this is not Clojure/thurber-specific) you should understand Beam "fusion" and when to **break fusion** to achieve 
   greater linear scalability. More info [here](https://beam.apache.org/contribute/ptransform-style-guide/#performance).
 
