@@ -5,7 +5,7 @@
 [![Clojars Project](https://img.shields.io/clojars/v/com.github.atdixon/thurber.svg)](https://clojars.org/com.github.atdixon/thurber)
 
 [Apache Beam](https://beam.apache.org/) and 
-[Google Cloud Dataflow](https://beam.apache.org/get-started/downloads/) on
+[Google Cloud Dataflow](https://cloud.google.com/dataflow) on
 ~~steroids~~ Clojure. The [walkthrough](./demo/walkthrough.clj) explains everything.
 
 _This is alpha software. Prefer latest versions of thurber and Beam Java SDK &amp; 
