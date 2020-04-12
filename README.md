@@ -19,7 +19,8 @@ API subject to mood swings._
     * [Word Count](#word-count)
     * [Mobile Gaming Examples](#mobile-gaming-examples)
 * [I/O Transforms](#io-transforms)
-* [Make It Fast](#make-it-fast)
+* [Performance](#performance)
+    * [Tips](#performance-tuning-tips)
 * [More Help](#more-help)
 
 ## Quickstart
@@ -135,12 +136,17 @@ You can [open an issue](https://github.com/atdixon/thurber/issues?utf8=✓&q=is%
  for any thurber demo code you'd like to see.
 
 
-## Make It Fast
+## Performance
 
-First make your pipeline work. Then optimize if needed:
+Streaming/big data implies hot code paths. thurber's core has been tuned for performance in various ways,
+but you may benefit from tuning your own pipeline code:
+
+### Performance Tuning Tips
 
 * Use Clojure [**type hints**](https://clojure.org/reference/java_interop#typehints) 
-liberally within your stream functions. Streaming/big data implies hot code paths.
+liberally within your stream functions.
+    - The cost of Java method invocation-by-reflection can be very high, and type hints can have a large
+      impact in these cases.
     - A helpful list of **type hint aliases** can be found [here](https://clojure.org/reference/java_interop#TypeAliases).
 * Use Clojure's high-performance [**primitive operations**](https://clojure.org/reference/java_interop#primitives).
 * Follow Clojure's [**optimization tips**](https://clojure.org/reference/java_interop#optimization).
