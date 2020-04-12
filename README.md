@@ -127,14 +127,14 @@ These are fully functional ports. They require deployment to GCP Dataflow:
 
 Beam has many I/O transforms &mdash; see [here](https://beam.apache.org/documentation/io/built-in/).
 
+KafkaIO, for example, has some configuration nuances:
+
 * [./demo/kafka/simple-consumer](./demo/kafka/simple_consumer.clj)
 shows how to configure a Kafka-consuming pipeline using thurber/Clojure
 
-Need help using thurber/Clojure with another I/O transform? 
-
-You can [open an issue](https://github.com/atdixon/thurber/issues?utf8=✓&q=is%3Aissue+label%3Ademo+)
- for any thurber demo code you'd like to see.
-
+If you need help using thurber/Clojure with another I/O transform, you can
+[open an issue](https://github.com/atdixon/thurber/issues?utf8=✓&q=is%3Aissue+label%3Ademo+)
+to request any thurber demo code you'd like to see.
 
 ## Performance
 
