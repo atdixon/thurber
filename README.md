@@ -18,7 +18,9 @@ API subject to mood swings._
 * [Demos](#demos)
     * [Word Count](#word-count)
     * [Mobile Gaming Examples](#mobile-gaming-examples)
+* [I/O Transforms](#io-transforms)
 * [Make It Fast](#make-it-fast)
+* [More Help](#more-help)
 
 ## Quickstart
 
@@ -120,6 +122,20 @@ These are fully functional ports. They require deployment to GCP Dataflow:
 
 * How to Run Beam Mobile Gaming Examples (thurber): [Detailed Instructions](./doc/running-mobile-gaming-examples.md)
 
+## I/O Transforms
+
+Beam has many [I/O transforms](https://beam.apache.org/documentation/io/built-in/);
+some of these require non-trivial interop:
+
+* [./demo/kafka/simple-consumer](./demo/kafka/simple_consumer.clj)
+shows how to configure a Kafka-consuming pipeline 
+
+Need help using thurber/Clojure with a given I/O transform?
+
+[Open an issue](https://github.com/atdixon/thurber/issues?utf8=✓&q=is%3Aissue+label%3Ademo+)
+ for any I/O demo code you'd wish to see.
+
+
 ## Make It Fast
 
 First make your pipeline work. Then optimize if needed:
@@ -144,6 +160,10 @@ to zero in on areas to optimize.
     - (Note: This rarely if ever should be needed to achieve optimal performance.)
 * In general (this is not Clojure/thurber-specific) you should understand Beam "fusion" and when to **break fusion** to achieve 
   greater linear scalability. More info [here](https://beam.apache.org/contribute/ptransform-style-guide/#performance).
+
+## More Help
+
+* Ask a question by [opening an issue](https://github.com/atdixon/thurber/issues?utf8=✓&q=is%3Aissue+label%3Aquestion+).
 
 ## References
 

@@ -3,7 +3,6 @@
             [word-count.basic]
             [clojure.tools.logging :as log])
   (:import (org.apache.beam.sdk.io TextIO)
-           (java.util.regex Pattern)
            (org.apache.beam.sdk.testing PAssert)
            (org.apache.beam.sdk.metrics Metrics Counter)
            (org.apache.beam.sdk.values KV)))

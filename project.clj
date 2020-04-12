@@ -26,6 +26,7 @@
    [com.google.code.findbugs/jsr305 "3.0.2"]
    [org.javassist/javassist "3.26.0-GA"]
    [com.taoensso/nippy "2.14.0"]
+   [org.apache.kafka/kafka-clients "2.4.1"]
    [org.slf4j/slf4j-api "1.7.29"]]
 
   :profiles
@@ -39,6 +40,8 @@
             :exclusions [org.slf4j/slf4j-jdk14]]
            [org.slf4j/slf4j-simple "1.7.29"]]}
    :dev [:demo
+         :extra
+         :experimental
          {:source-paths ["demo"]
           :dependencies
           [;; -- test deps --
@@ -51,10 +54,10 @@
            [lein-ancient "0.6.15"]
            [lein-codox "0.10.7"]]}]
    :extra {:dependencies
-           [[org.apache.kafka/kafka-clients "2.4.0"]
-            [org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]
+           [[org.apache.beam/beam-sdks-java-io-kafka ~version-apache-beam]
             [org.apache.beam/beam-sdks-java-io-jdbc ~version-apache-beam]
             [org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
+   :experimental {:dependencies []}
    :staging-repos {:repositories [["repository.apache.org/staging"
                                    {:url
                                     "https://repository.apache.org/content/repositories/orgapachebeam-1101"

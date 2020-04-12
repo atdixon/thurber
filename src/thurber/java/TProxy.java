@@ -1,5 +1,6 @@
 package thurber.java;
 
+import clojure.lang.IFn;
 import clojure.lang.Var;
 import javassist.util.proxy.MethodHandler;
 import javassist.util.proxy.ProxyFactory;
@@ -18,17 +19,19 @@ public class TProxy {
     /** Serializable MethodHandler. */
     private static final class MethodHandlerImpl implements MethodHandler, Serializable {
         private final Var proxyVar;
+        private transient Object delegate;
         private final Object[] proxyArgs;
 
         private MethodHandlerImpl(Var proxyVar, Object[] args) {
             this.proxyVar = proxyVar;
+            this.delegate = proxyVar.deref();
             this.proxyArgs = args;
         }
 
         @Override public Object invoke(Object self, Method thisMethod, Method proceed, Object[] args) throws Throwable {
             PA.set(proxyArgs);
             try {
-                return thisMethod.invoke(proxyVar.deref(), args);
+                return thisMethod.invoke(this.delegate, args);
             } finally {
                 PA.set(null);
             }
@@ -38,6 +41,7 @@ public class TProxy {
             throws IOException, ClassNotFoundException {
             stream.defaultReadObject();
             Core.require_(proxyVar);
+            this.delegate = proxyVar.deref();
         }
     }
 
