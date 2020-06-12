@@ -1,4 +1,5 @@
 (ns thurber
+  (:refer-clojure :exclude [filter partial])
   (:require [camel-snake-kebab.core :as csk]
             [clojure.data.json :as json]
             [clojure.string :as str]
