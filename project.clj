@@ -1,6 +1,6 @@
-(def version-apache-beam "2.19.0")
+(def version-apache-beam "2.22.0")
 
-(defproject com.github.atdixon/thurber "0.0.5-alpha5-SNAPSHOT"
+(defproject com.github.atdixon/thurber "0.0.6-alpha1-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
   :description "thurber: Apache Beam on Clojure"
   :url "https://github.com/atdixon/thurber"
