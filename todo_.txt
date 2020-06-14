@@ -11,7 +11,7 @@
       (.encode (AvroCoder/of GameActionInfo (Schema/parse (:json-schema game-action-info-schema))) me baos)
       (count (.toByteArray baos)))
 
-
+* https://github.com/apache/beam/tree/master/learning/katas/java
 
 * coder issues help
 
