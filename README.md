@@ -8,9 +8,8 @@
 [Google Cloud Dataflow](https://cloud.google.com/dataflow) on
 ~~steroids~~ Clojure. The [walkthrough](./demo/walkthrough.clj) explains everything.
 
-_This is alpha software. Prefer latest versions of thurber and Beam Java SDK &amp; 
-watch [release notes](https://github.com/atdixon/thurber/releases) carefully. 
-API subject to mood swings._
+_This is alpha software. Watch [release notes](https://github.com/atdixon/thurber/releases) 
+carefully._
 
 * [Quickstart](#quickstart)
 * [Project Goals](#project-goals)
