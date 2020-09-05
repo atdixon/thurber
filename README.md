@@ -172,6 +172,7 @@ to zero in on areas to optimize.
 ## References
 
 * https://write.as/aaron-d/clojure-data-streaming-and-dodging-static-types
+* https://tech.redplanetlabs.com/2020/09/02/clojure-faster/
 
 ## License
 Copyright © 2020 Aaron Dixon
