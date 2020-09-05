@@ -1,6 +1,6 @@
-(def version-apache-beam "2.22.0")
+(def version-apache-beam "2.23.0")
 
-(defproject com.github.atdixon/thurber "0.0.6-alpha2-SNAPSHOT"
+(defproject com.github.atdixon/thurber "0.0.7-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
   :description "thurber: Apache Beam on Clojure"
   :url "https://github.com/atdixon/thurber"
@@ -59,7 +59,7 @@
                   [[org.apache.beam/beam-sdks-java-io-amazon-web-services ~version-apache-beam]]}
    :staging-repos {:repositories [["repository.apache.org/staging"
                                    {:url
-                                    "https://repository.apache.org/content/repositories/orgapachebeam-1101"
+                                    "https://repository.apache.org/content/repositories/orgapachebeam-1110"
                                     ;; "https://repository.apache.org/content/groups/staging/"
                                     }]]}
    :dataflow {:dependencies
