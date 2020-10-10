@@ -1,4 +1,4 @@
-(def version-apache-beam "2.23.0")
+(def version-apache-beam "2.24.0")
 
 (defproject com.github.atdixon/thurber "0.0.7-alpha2-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
