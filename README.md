@@ -21,6 +21,7 @@ carefully._
 * [Performance](#performance)
     * [Tips](#performance-tuning-tips)
 * [More Help](#more-help)
+* [Donate](#donate)
 
 ## Quickstart
 
@@ -173,6 +174,10 @@ to zero in on areas to optimize.
 
 * https://write.as/aaron-d/clojure-data-streaming-and-dodging-static-types
 * https://tech.redplanetlabs.com/2020/09/02/clojure-faster/
+
+## Donate
+
+[![Donatecoins](http://donatecoins.org/btc/1BWEfmRYr7UommKTXFtoZF2HB1z41sr7J5.svg)](http://donatecoins.org/btc/1BWEfmRYr7UommKTXFtoZF2HB1z41sr7J5)
 
 ## License
 Copyright © 2020 Aaron Dixon
