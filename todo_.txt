@@ -1,7 +1,5 @@
 * avoid ThreadLocal/set get for functions that don't require? (or are hinted to not require?)
-
-
-** ??????? remove lancaster and use AvroSchema/of
+* ??????? remove lancaster and use AvroSchema/of
     - just need to be able to make AvroSchema from record AND types tho?
     - not AvroSchema needs default construct (defrecord no)
     - nah need to separate schema def
@@ -12,25 +10,17 @@
       (count (.toByteArray baos)))
 
 * https://github.com/apache/beam/tree/master/learning/katas/java
-
 * coder issues help
-
 * splittable via thurber api
-
 * blog: serializing clojure functions -- nod to proxy too
 * github: beam tutorial via thurber
-
 * new TimerFamily feature!
-
 * clojure-ify KafkaIO (get-watermark, get-timestamp, etc), JdbcIO, etc, make optional dep
 * bump to latest beam release
     * validate dataflow demos after doing this
 * switch to namespaced keys ::th/xform etc
-
 * UnboundedSeqSource needed? or facade beam's own facilities
-
 * window + trigger DSL? overall facade?
-
 * inline comps
 * fujion
 * instead of dynamic thread bindings
@@ -39,29 +29,21 @@
         (defn doof [& {:keys [process-context]}] ...process-context...)
     - try and benchmark via user_score_opt
         then compare to user_score... was pushThreadBindings the $$$ part?
-
 * since type hints for dofn's necessary/good,
     what about context injection by type??? how far could this go?
     (defn foo [^Integer x])
     => #'user/foo
     (meta (ffirst (:arglists (meta #'foo))))
     => {:tag Integer}
-
 * templates support
-
 * docs on ->kv, partial, #'fn-var/DoFn (!!), coders, etc.
-
 * benchmarks
-
 * how extensively can th/proxy be used
-
 * crazy?
     - support destructuring of KV directly in dofns
         - ...with :as foo giving KV val?
         - ...what to do with output emissions?
-
 * https://beam.apache.org/documentation/sdks/java-extensions/
-
 * releases
     * git tag -d 0.0.1-alpha # del local
     * git push origin :tagname # del remote
@@ -69,7 +51,6 @@
     * lein javac (sanity check compile), lein test, then
     * lein release :alpha
     * last release had to add :checksum :ignore to repositories
-
 
 snippets
 ---
