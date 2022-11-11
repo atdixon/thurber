@@ -1,4 +1,4 @@
-(def version-apache-beam "2.28.0")
+(def version-apache-beam "2.42.0")
 
 (defproject com.github.atdixon/thurber "1.1.0-SNAPSHOT"
   :author "Aaron Dixon <https://write.as/aaron-d/>"
@@ -19,28 +19,28 @@
   :pedantic? false
 
   :dependencies
-  [[camel-snake-kebab "0.4.2"]
+  [[camel-snake-kebab "0.4.3"]
    [clj-time "0.15.2"]
-   [org.clojure/clojure "1.10.3"]
-   [org.clojure/data.json "2.1.1"]
-   [org.clojure/tools.logging "1.1.0"]
+   [org.clojure/clojure "1.11.1"]
+   [org.clojure/data.json "2.4.0"]
+   [org.clojure/tools.logging "1.2.4"]
    [org.apache.beam/beam-sdks-java-core ~version-apache-beam]
    [com.google.code.findbugs/jsr305 "3.0.2"]
-   [org.javassist/javassist "3.27.0-GA"]
-   [com.taoensso/nippy "2.14.0"]
-   [org.apache.kafka/kafka-clients "2.7.0"]
-   [org.slf4j/slf4j-api "1.7.30"]]
+   [org.javassist/javassist "3.29.2-GA"]
+   [com.taoensso/nippy "3.2.0"]
+   [org.apache.kafka/kafka-clients "3.3.1"]
+   [org.slf4j/slf4j-api "2.0.3"]]
 
   :profiles
   {:demo {:source-paths ["demo"]
           :dependencies
           [;; -- demo deps --
-           [org.clojure/core.async "1.3.610"]
-           [deercreeklabs/lancaster "0.9.8"]
+           [org.clojure/core.async "1.6.673"]
+           [deercreeklabs/lancaster "0.9.22"]
            [org.apache.beam/beam-runners-direct-java ~version-apache-beam]
            [org.apache.beam/beam-examples-java ~version-apache-beam
             :exclusions [org.slf4j/slf4j-jdk14]]
-           [org.slf4j/slf4j-simple "1.7.30"]]}
+           [org.slf4j/slf4j-simple "2.0.3"]]}
    :dev [:demo
          :extra
          {:source-paths ["demo"]
